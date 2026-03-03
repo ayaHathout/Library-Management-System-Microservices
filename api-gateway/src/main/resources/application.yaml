@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+            - id:
+                user-route
+              uri:
+                lb://user-service
+              predicates:
+                - Path=/users/**
+            - id:
+                book-route
+              uri:
+                lb://book-service
+              predicates:
+                - Path=/books/**
+            - id:
+                user-activity-log-route
+              uri:
+                lb://user-activity-log-service
+              predicates:
+                - Path=/user-activity-logs/**
+            - id:
+                borrower-route
+              uri:
+                lb://borrower-service
+              predicates:
+                - Path=/borrowers/**
+
+server:
+  port: 8086

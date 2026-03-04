@@ -2,9 +2,9 @@ package com.ayahathout.book_service.services.impls;
 
 import com.ayahathout.book_service.dtos.PublisherDTO;
 import com.ayahathout.book_service.dtos.PublisherResponseDTO;
+import com.ayahathout.book_service.exceptions.BadRequestException;
 import com.ayahathout.book_service.mappers.PublisherMapper;
 import com.ayahathout.book_service.models.Publisher;
-import com.ayahathout.book_service.repositories.BookRepository;
 import com.ayahathout.book_service.repositories.PublisherRepository;
 import com.ayahathout.book_service.services.interfaces.PublisherService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +20,6 @@ public class PublisherServiceImpl implements PublisherService {
 
     @Autowired
     private PublisherMapper publisherMapper;
-
-    @Autowired
-    private BookRepository bookRepository;
 
     @Override
     public List<PublisherResponseDTO> getAllPublishers() {
@@ -70,7 +67,7 @@ public class PublisherServiceImpl implements PublisherService {
         return publisherRepository.findById(id)
                 .map(publisher -> {
                     if (!publisher.getBooks().isEmpty()) {
-                        throw new RuntimeException("Cannot delete publisher with ID " + id + " because it has " + publisher.getBooks().size() + " associated books.");
+                        throw new BadRequestException("Cannot delete publisher with ID " + id + " because it has " + publisher.getBooks().size() + " associated books.");
                     }
 
                     PublisherResponseDTO deletedPublisher = publisherMapper.toResponseDTO(publisher);

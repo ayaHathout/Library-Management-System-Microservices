@@ -3,6 +3,8 @@ package com.ayahathout.book_service.services.impls;
 import com.ayahathout.book_service.dtos.BookCreateDTO;
 import com.ayahathout.book_service.dtos.BookResponseDTO;
 import com.ayahathout.book_service.dtos.BookUpdateDTO;
+import com.ayahathout.book_service.exceptions.BadRequestException;
+import com.ayahathout.book_service.exceptions.ResourceNotFoundException;
 import com.ayahathout.book_service.mappers.BookMapper;
 import com.ayahathout.book_service.models.Author;
 import com.ayahathout.book_service.models.Book;
@@ -54,18 +56,18 @@ public class BookServiceImpl implements BookService {
 
         // Get the publisher
         Publisher publisher = publisherRepository.findById(bookCreateDTO.publisherId())
-                .orElseThrow(() -> new RuntimeException("Publisher not found with id: " + bookCreateDTO.publisherId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Publisher not found with id: " + bookCreateDTO.publisherId()));
 
         // Get the authors
         List<Author> authors = authorRepository.findAllById(bookCreateDTO.authorIds());
         if (authors.size() != bookCreateDTO.authorIds().size()) {
-            throw new RuntimeException("Some authors not found!");
+            throw new ResourceNotFoundException("Some authors not found!");
         }
 
         // Get the categories
         List<Category> categories = categoryRepository.findAllById(bookCreateDTO.categoryIds());
         if (categories.size() != bookCreateDTO.categoryIds().size()) {
-            throw new RuntimeException("Some categories not found!");
+            throw new ResourceNotFoundException("Some categories not found!");
         }
 
         // To make availableCopies = totalCopies
@@ -124,21 +126,21 @@ public class BookServiceImpl implements BookService {
 
                     if (updatedBookDTO.availableCopies() != null) {
                         if (updatedBookDTO.availableCopies() > book.getTotalCopies()) {
-                            throw new RuntimeException("Available copies can't be greater than the total copies");
+                            throw new BadRequestException("Available copies can't be greater than the total copies");
                         }
                         book.setAvailableCopies(updatedBookDTO.availableCopies());
                     }
 
                     if (updatedBookDTO.publisherId() != null) {
                         Publisher publisher = publisherRepository.findById(updatedBookDTO.publisherId())
-                                .orElseThrow(() -> new RuntimeException("Publisher not found with id: " + updatedBookDTO.publisherId()));
+                                .orElseThrow(() -> new ResourceNotFoundException("Publisher not found with id: " + updatedBookDTO.publisherId()));
                         book.setPublisher(publisher);
                     }
 
                     if (updatedBookDTO.authorIds() != null && !updatedBookDTO.authorIds().isEmpty()) {
                         List<Author> authors = authorRepository.findAllById(updatedBookDTO.authorIds());
                         if (authors.size() != updatedBookDTO.authorIds().size()) {
-                            throw new RuntimeException("Some authors not found!");
+                            throw new ResourceNotFoundException("Some authors not found!");
                         }
                         book.setAuthors(new HashSet<>(authors));
                     }
@@ -146,7 +148,7 @@ public class BookServiceImpl implements BookService {
                     if (updatedBookDTO.categoryIds() != null && !updatedBookDTO.categoryIds().isEmpty()) {
                         List<Category> categories = categoryRepository.findAllById(updatedBookDTO.categoryIds());
                         if (categories.size() != updatedBookDTO.categoryIds().size()) {
-                            throw new RuntimeException("Some categories not found!");
+                            throw new ResourceNotFoundException("Some categories not found!");
                         }
                         book.setCategories(new HashSet<>(categories));
                     }

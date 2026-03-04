@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CategoryService {
-    List<CategoryResponseDTO> getAllCategorys();
+    List<CategoryResponseDTO> getAllCategories();
     Optional<CategoryResponseDTO> getCategoryById(Long id);
     CategoryResponseDTO createCategory(CategoryDTO categoryDTO);
     Optional<CategoryResponseDTO> updateCategory(Long id, CategoryDTO categoryDTO);

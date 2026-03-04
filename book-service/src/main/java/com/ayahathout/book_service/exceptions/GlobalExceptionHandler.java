@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.stream.Collectors;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -33,6 +35,25 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
+
+//    @ExceptionHandler(MethodArgumentNotValidException.class)
+//    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, HttpServletRequest request) {
+//        String message = ex.getBindingResult()
+//                .getFieldErrors()
+//                .stream()
+//                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+//                .collect(Collectors.joining(", "));
+//
+//        ErrorResponse errorResponse = ErrorResponse
+//                .builder()
+//                .status(HttpStatus.BAD_REQUEST.value())
+//                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+//                .message(message)
+//                .path(request.getRequestURI())
+//                .build();
+//
+//        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+//    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, HttpServletRequest request) {

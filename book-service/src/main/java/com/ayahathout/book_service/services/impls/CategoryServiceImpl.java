@@ -8,19 +8,17 @@ import com.ayahathout.book_service.mappers.CategoryMapper;
 import com.ayahathout.book_service.models.Category;
 import com.ayahathout.book_service.repositories.CategoryRepository;
 import com.ayahathout.book_service.services.interfaces.CategoryService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
-    @Autowired
-    private CategoryMapper categoryMapper;
+    private final CategoryMapper categoryMapper;
 
     @Override
     public List<CategoryResponseDTO> getAllCategories() {
@@ -31,9 +29,10 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Optional<CategoryResponseDTO> getCategoryById(Long id) {
+    public CategoryResponseDTO getCategoryById(Long id) {
         return categoryRepository.findById(id)
-                .map(categoryMapper::toResponseDTO);
+                .map(categoryMapper::toResponseDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id " + id));
     }
 
     @Override
@@ -50,7 +49,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Optional<CategoryResponseDTO> updateCategory(Long id, CategoryDTO updateCategoryDTO) {
+    public CategoryResponseDTO updateCategory(Long id, CategoryDTO updateCategoryDTO) {
         return categoryRepository.findById(id)
                 .map(category -> {
                     if (updateCategoryDTO.name() != null) {
@@ -64,11 +63,12 @@ public class CategoryServiceImpl implements CategoryService {
 
                     return categoryRepository.save(category);
                 })
-                .map(categoryMapper::toResponseDTO);
+                .map(categoryMapper::toResponseDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
     }
 
     @Override
-    public Optional<CategoryResponseDTO> deleteCategory(Long id) {
+    public CategoryResponseDTO deleteCategory(Long id) {
         return categoryRepository.findById(id)
                 .map(category -> {
                     if (!category.getSubCategories().isEmpty()) {
@@ -78,6 +78,7 @@ public class CategoryServiceImpl implements CategoryService {
                     CategoryResponseDTO deletedCategory = categoryMapper.toResponseDTO(category);
                     categoryRepository.delete(category);
                     return deletedCategory;
-                });
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
     }
 }

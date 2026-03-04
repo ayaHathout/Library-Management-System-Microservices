@@ -15,30 +15,25 @@ import com.ayahathout.book_service.repositories.BookRepository;
 import com.ayahathout.book_service.repositories.CategoryRepository;
 import com.ayahathout.book_service.repositories.PublisherRepository;
 import com.ayahathout.book_service.services.interfaces.BookService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
-    @Autowired
-    private BookRepository bookRepository;
+    private final BookRepository bookRepository;
 
-    @Autowired
-    private BookMapper bookMapper;
+    private final BookMapper bookMapper;
 
-    @Autowired
-    private PublisherRepository publisherRepository;
+    private final PublisherRepository publisherRepository;
 
-    @Autowired
-    private AuthorRepository authorRepository;
+    private final AuthorRepository authorRepository;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
     @Override
     public List<BookResponseDTO> getAllBooks() {
@@ -46,8 +41,10 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public Optional<BookResponseDTO> getBookById(Long id) {
-        return bookRepository.findByIdWithDetails(id).map(bookMapper::toResponseDTO);
+    public BookResponseDTO getBookById(Long id) {
+        return bookRepository.findByIdWithDetails(id)
+                .map(bookMapper::toResponseDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id " + id));
     }
 
     @Override
@@ -81,7 +78,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public Optional<BookResponseDTO> updateBook(Long id, BookUpdateDTO updatedBookDTO) {
+    public BookResponseDTO updateBook(Long id, BookUpdateDTO updatedBookDTO) {
         return bookRepository.findById(id)
                 .map(book -> {
                     if (updatedBookDTO.title() != null) {
@@ -154,16 +151,19 @@ public class BookServiceImpl implements BookService {
                     }
 
                     return bookRepository.save(book);
-                }).map(bookMapper::toResponseDTO);
+                })
+                .map(bookMapper::toResponseDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id " + id));
     }
 
     @Override
-    public Optional<BookResponseDTO> deleteBook(Long id) {
+    public BookResponseDTO deleteBook(Long id) {
         return bookRepository.findById(id)
                 .map(book -> {
                     BookResponseDTO dto = bookMapper.toResponseDTO(book);
                     bookRepository.delete(book);
                     return dto;
-                });
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id " + id));
     }
 }

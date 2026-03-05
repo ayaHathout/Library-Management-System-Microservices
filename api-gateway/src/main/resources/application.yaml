@@ -14,10 +14,7 @@ spring:
             - id: book-service-route
               uri: lb://book-service
               predicates:
-                - Path=/books/**
-                - Path=/authors/**
-                - Path=/categories/**
-                - Path=/publishers/**
+                - Path=/books/**, /authors/**, /categories/**, /publishers/**
             - id: user-activity-log-route
               uri: lb://user-activity-log-service
               predicates:

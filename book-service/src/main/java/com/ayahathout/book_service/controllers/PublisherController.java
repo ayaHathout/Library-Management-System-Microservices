@@ -1,8 +1,10 @@
 package com.ayahathout.book_service.controllers;
 
-import com.ayahathout.book_service.dtos.PublisherDTO;
+import com.ayahathout.book_service.dtos.PublisherCreateDTO;
 import com.ayahathout.book_service.dtos.PublisherResponseDTO;
+import com.ayahathout.book_service.dtos.PublisherUpdateDTO;
 import com.ayahathout.book_service.services.interfaces.PublisherService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,14 +19,14 @@ public class PublisherController {
     private final PublisherService publisherService;
 
     @PostMapping
-    public ResponseEntity<PublisherResponseDTO> createPublisher(@RequestBody PublisherDTO publisherDTO) {
-        PublisherResponseDTO retPublisher = publisherService.createPublisher(publisherDTO);
+    public ResponseEntity<PublisherResponseDTO> createPublisher(@Valid @RequestBody PublisherCreateDTO publisherCreateDTO) {
+        PublisherResponseDTO retPublisher = publisherService.createPublisher(publisherCreateDTO);
         return ResponseEntity.created(URI.create("/publishers/" + retPublisher.id())).body(retPublisher);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<PublisherResponseDTO> updatePublisher(@PathVariable Long id, @RequestBody PublisherDTO updatedPublisher) {
-        PublisherResponseDTO publisher = publisherService.updatePublisher(id, updatedPublisher);
+    public ResponseEntity<PublisherResponseDTO> updatePublisher(@PathVariable Long id, @RequestBody PublisherUpdateDTO publisherUpdateDTO) {
+        PublisherResponseDTO publisher = publisherService.updatePublisher(id, publisherUpdateDTO);
         return ResponseEntity.ok(publisher);
     }
 

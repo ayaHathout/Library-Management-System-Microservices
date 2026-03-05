@@ -1,6 +1,7 @@
 package com.ayahathout.book_service.exceptions;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -8,10 +9,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex, HttpServletRequest request) {
+        log.error("ResourceNotFoundException", ex);
+
         ErrorResponse errorResponse = ErrorResponse
                 .builder()
                 .status(HttpStatus.NOT_FOUND.value())
@@ -25,6 +29,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException ex, HttpServletRequest request) {
+        log.error("BadRequestException", ex);
+
         ErrorResponse errorResponse = ErrorResponse
                 .builder()
                 .status(HttpStatus.BAD_REQUEST.value())
@@ -57,6 +63,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, HttpServletRequest request) {
+        log.error("GlobalException", ex);
+
         ErrorResponse errorResponse = ErrorResponse
                 .builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())

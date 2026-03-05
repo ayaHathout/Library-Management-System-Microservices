@@ -7,28 +7,23 @@ spring:
       server:
         webmvc:
           routes:
-            - id:
-                user-route
-              uri:
-                lb://user-service
+            - id: user-service-route
+              uri: lb://user-service
               predicates:
                 - Path=/users/**
-            - id:
-                book-route
-              uri:
-                lb://book-service
+            - id: book-service-route
+              uri: lb://book-service
               predicates:
                 - Path=/books/**
-            - id:
-                user-activity-log-route
-              uri:
-                lb://user-activity-log-service
+                - Path=/authors/**
+                - Path=/categories/**
+                - Path=/publishers/**
+            - id: user-activity-log-route
+              uri: lb://user-activity-log-service
               predicates:
                 - Path=/user-activity-logs/**
-            - id:
-                borrower-route
-              uri:
-                lb://borrower-service
+            - id: borrower-route
+              uri: lb://borrower-service
               predicates:
                 - Path=/borrowers/**
 

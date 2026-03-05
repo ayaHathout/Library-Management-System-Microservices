@@ -3,6 +3,8 @@ package com.ayahathout.book_service.services.impls;
 import com.ayahathout.book_service.dtos.BookCreateDTO;
 import com.ayahathout.book_service.dtos.BookResponseDTO;
 import com.ayahathout.book_service.dtos.BookUpdateDTO;
+import com.ayahathout.book_service.exceptions.BadRequestException;
+import com.ayahathout.book_service.exceptions.ResourceNotFoundException;
 import com.ayahathout.book_service.mappers.BookMapper;
 import com.ayahathout.book_service.models.Author;
 import com.ayahathout.book_service.models.Book;
@@ -13,30 +15,25 @@ import com.ayahathout.book_service.repositories.BookRepository;
 import com.ayahathout.book_service.repositories.CategoryRepository;
 import com.ayahathout.book_service.repositories.PublisherRepository;
 import com.ayahathout.book_service.services.interfaces.BookService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
-    @Autowired
-    private BookRepository bookRepository;
+    private final BookRepository bookRepository;
 
-    @Autowired
-    private BookMapper bookMapper;
+    private final BookMapper bookMapper;
 
-    @Autowired
-    private PublisherRepository publisherRepository;
+    private final PublisherRepository publisherRepository;
 
-    @Autowired
-    private AuthorRepository authorRepository;
+    private final AuthorRepository authorRepository;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
     @Override
     public List<BookResponseDTO> getAllBooks() {
@@ -44,8 +41,10 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public Optional<BookResponseDTO> getBookById(Long id) {
-        return bookRepository.findByIdWithDetails(id).map(bookMapper::toResponseDTO);
+    public BookResponseDTO getBookById(Long id) {
+        return bookRepository.findByIdWithDetails(id)
+                .map(bookMapper::toResponseDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id " + id));
     }
 
     @Override
@@ -54,18 +53,18 @@ public class BookServiceImpl implements BookService {
 
         // Get the publisher
         Publisher publisher = publisherRepository.findById(bookCreateDTO.publisherId())
-                .orElseThrow(() -> new RuntimeException("Publisher not found with id: " + bookCreateDTO.publisherId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Publisher not found with id: " + bookCreateDTO.publisherId()));
 
         // Get the authors
         List<Author> authors = authorRepository.findAllById(bookCreateDTO.authorIds());
         if (authors.size() != bookCreateDTO.authorIds().size()) {
-            throw new RuntimeException("Some authors not found!");
+            throw new ResourceNotFoundException("Some authors not found!");
         }
 
         // Get the categories
         List<Category> categories = categoryRepository.findAllById(bookCreateDTO.categoryIds());
         if (categories.size() != bookCreateDTO.categoryIds().size()) {
-            throw new RuntimeException("Some categories not found!");
+            throw new ResourceNotFoundException("Some categories not found!");
         }
 
         // To make availableCopies = totalCopies
@@ -79,7 +78,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public Optional<BookResponseDTO> updateBook(Long id, BookUpdateDTO updatedBookDTO) {
+    public BookResponseDTO updateBook(Long id, BookUpdateDTO updatedBookDTO) {
         return bookRepository.findById(id)
                 .map(book -> {
                     if (updatedBookDTO.title() != null) {
@@ -124,21 +123,21 @@ public class BookServiceImpl implements BookService {
 
                     if (updatedBookDTO.availableCopies() != null) {
                         if (updatedBookDTO.availableCopies() > book.getTotalCopies()) {
-                            throw new RuntimeException("Available copies can't be greater than the total copies");
+                            throw new BadRequestException("Available copies can't be greater than the total copies");
                         }
                         book.setAvailableCopies(updatedBookDTO.availableCopies());
                     }
 
                     if (updatedBookDTO.publisherId() != null) {
                         Publisher publisher = publisherRepository.findById(updatedBookDTO.publisherId())
-                                .orElseThrow(() -> new RuntimeException("Publisher not found with id: " + updatedBookDTO.publisherId()));
+                                .orElseThrow(() -> new ResourceNotFoundException("Publisher not found with id: " + updatedBookDTO.publisherId()));
                         book.setPublisher(publisher);
                     }
 
                     if (updatedBookDTO.authorIds() != null && !updatedBookDTO.authorIds().isEmpty()) {
                         List<Author> authors = authorRepository.findAllById(updatedBookDTO.authorIds());
                         if (authors.size() != updatedBookDTO.authorIds().size()) {
-                            throw new RuntimeException("Some authors not found!");
+                            throw new ResourceNotFoundException("Some authors not found!");
                         }
                         book.setAuthors(new HashSet<>(authors));
                     }
@@ -146,22 +145,25 @@ public class BookServiceImpl implements BookService {
                     if (updatedBookDTO.categoryIds() != null && !updatedBookDTO.categoryIds().isEmpty()) {
                         List<Category> categories = categoryRepository.findAllById(updatedBookDTO.categoryIds());
                         if (categories.size() != updatedBookDTO.categoryIds().size()) {
-                            throw new RuntimeException("Some categories not found!");
+                            throw new ResourceNotFoundException("Some categories not found!");
                         }
                         book.setCategories(new HashSet<>(categories));
                     }
 
                     return bookRepository.save(book);
-                }).map(bookMapper::toResponseDTO);
+                })
+                .map(bookMapper::toResponseDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id " + id));
     }
 
     @Override
-    public Optional<BookResponseDTO> deleteBook(Long id) {
+    public BookResponseDTO deleteBook(Long id) {
         return bookRepository.findById(id)
                 .map(book -> {
                     BookResponseDTO dto = bookMapper.toResponseDTO(book);
                     bookRepository.delete(book);
                     return dto;
-                });
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id " + id));
     }
 }

@@ -2,22 +2,21 @@ package com.ayahathout.book_service.services.impls;
 
 import com.ayahathout.book_service.dtos.AuthorDTO;
 import com.ayahathout.book_service.dtos.AuthorResponseDTO;
+import com.ayahathout.book_service.exceptions.ResourceNotFoundException;
 import com.ayahathout.book_service.mappers.AuthorMapper;
 import com.ayahathout.book_service.repositories.AuthorRepository;
 import com.ayahathout.book_service.services.interfaces.AuthorService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class AuthorServiceImpl implements AuthorService {
-    @Autowired
-    private AuthorRepository authorRepository;
+    private final AuthorRepository authorRepository;
 
-    @Autowired
-    private AuthorMapper authorMapper;
+    private final AuthorMapper authorMapper;
 
     @Override
     public List<AuthorResponseDTO> getAllAuthors() {
@@ -28,9 +27,10 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
-    public Optional<AuthorResponseDTO> getAuthorById(Long id) {
+    public AuthorResponseDTO getAuthorById(Long id) {
         return authorRepository.findById(id)
-                .map(authorMapper::toResponseDTO);
+                .map(authorMapper::toResponseDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Author not found with id " + id));
     }
 
     @Override
@@ -39,7 +39,7 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
-    public Optional<AuthorResponseDTO> updateAuthor(Long id, AuthorDTO updateAuthorDTO) {
+    public AuthorResponseDTO updateAuthor(Long id, AuthorDTO updateAuthorDTO) {
         return authorRepository.findById(id)
                 .map(author -> {
                     if (updateAuthorDTO.firstName() != null) {
@@ -53,16 +53,18 @@ public class AuthorServiceImpl implements AuthorService {
                     }
                     return authorRepository.save(author);
                 })
-                .map(authorMapper::toResponseDTO);
+                .map(authorMapper::toResponseDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Author not found with id " + id));
     }
 
     @Override
-    public Optional<AuthorResponseDTO> deleteAuthor(Long id) {
+    public AuthorResponseDTO deleteAuthor(Long id) {
         return authorRepository.findById(id)
                 .map(author -> {
                     AuthorResponseDTO dto = authorMapper.toResponseDTO(author);
                     authorRepository.delete(author);
                     return dto;
-                });
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("Author not found with id " + id));
     }
 }

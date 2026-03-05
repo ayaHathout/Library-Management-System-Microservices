@@ -2,27 +2,23 @@ package com.ayahathout.book_service.services.impls;
 
 import com.ayahathout.book_service.dtos.PublisherDTO;
 import com.ayahathout.book_service.dtos.PublisherResponseDTO;
+import com.ayahathout.book_service.exceptions.BadRequestException;
+import com.ayahathout.book_service.exceptions.ResourceNotFoundException;
 import com.ayahathout.book_service.mappers.PublisherMapper;
 import com.ayahathout.book_service.models.Publisher;
-import com.ayahathout.book_service.repositories.BookRepository;
 import com.ayahathout.book_service.repositories.PublisherRepository;
 import com.ayahathout.book_service.services.interfaces.PublisherService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class PublisherServiceImpl implements PublisherService {
-    @Autowired
-    private PublisherRepository publisherRepository;
+    private final PublisherRepository publisherRepository;
 
-    @Autowired
-    private PublisherMapper publisherMapper;
-
-    @Autowired
-    private BookRepository bookRepository;
+    private final PublisherMapper publisherMapper;
 
     @Override
     public List<PublisherResponseDTO> getAllPublishers() {
@@ -33,9 +29,10 @@ public class PublisherServiceImpl implements PublisherService {
     }
 
     @Override
-    public Optional<PublisherResponseDTO> getPublisherById(Long id) {
+    public PublisherResponseDTO getPublisherById(Long id) {
         return publisherRepository.findById(id)
-                .map(publisherMapper::toResponseDTO);
+                .map(publisherMapper::toResponseDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Publisher not found with id " + id));
     }
 
     @Override
@@ -45,7 +42,7 @@ public class PublisherServiceImpl implements PublisherService {
     }
 
     @Override
-    public Optional<PublisherResponseDTO> updatePublisher(Long id, PublisherDTO publisherDTO) {
+    public PublisherResponseDTO updatePublisher(Long id, PublisherDTO publisherDTO) {
         return publisherRepository.findById(id)
                 .map(publisher -> {
                     if (publisherDTO.email() != null) {
@@ -62,20 +59,22 @@ public class PublisherServiceImpl implements PublisherService {
                     }
                     return publisherRepository.save(publisher);
                 })
-                .map(publisherMapper::toResponseDTO);
+                .map(publisherMapper::toResponseDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Publisher not found with id " + id));
     }
 
     @Override
-    public Optional<PublisherResponseDTO> deletePublisher(Long id) {
+    public PublisherResponseDTO deletePublisher(Long id) {
         return publisherRepository.findById(id)
                 .map(publisher -> {
                     if (!publisher.getBooks().isEmpty()) {
-                        throw new RuntimeException("Cannot delete publisher with ID " + id + " because it has " + publisher.getBooks().size() + " associated books.");
+                        throw new BadRequestException("Cannot delete publisher with ID " + id + " because it has " + publisher.getBooks().size() + " associated books.");
                     }
 
                     PublisherResponseDTO deletedPublisher = publisherMapper.toResponseDTO(publisher);
                     publisherRepository.delete(publisher);
                     return deletedPublisher;
-                });
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("Publisher not found with id " + id));
     }
 }

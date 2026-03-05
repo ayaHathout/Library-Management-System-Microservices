@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.stream.Collectors;
 
@@ -24,7 +25,7 @@ public class GlobalExceptionHandler {
                 .path(request.getRequestURI())
                 .build();
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
     @ExceptionHandler(BadRequestException.class)
@@ -39,27 +40,44 @@ public class GlobalExceptionHandler {
                 .path(request.getRequestURI())
                 .build();
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
-//    @ExceptionHandler(MethodArgumentNotValidException.class)
-//    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, HttpServletRequest request) {
-//        String message = ex.getBindingResult()
-//                .getFieldErrors()
-//                .stream()
-//                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-//                .collect(Collectors.joining(", "));
-//
-//        ErrorResponse errorResponse = ErrorResponse
-//                .builder()
-//                .status(HttpStatus.BAD_REQUEST.value())
-//                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-//                .message(message)
-//                .path(request.getRequestURI())
-//                .build();
-//
-//        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-//    }
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex, HttpServletRequest request) {
+        log.error("DataIntegrityViolationException", ex);
+
+        ErrorResponse errorResponse = ErrorResponse
+                .builder()
+                .status(HttpStatus.CONFLICT.value())
+                .error(HttpStatus.CONFLICT.getReasonPhrase())
+                .message("Duplicate entry. Resource already exists")
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        log.error("MethodArgumentNotValidException", ex);
+
+        String message = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+
+        ErrorResponse errorResponse = ErrorResponse
+                .builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .message(message)
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, HttpServletRequest request) {
@@ -73,6 +91,6 @@ public class GlobalExceptionHandler {
                 .path(request.getRequestURI())
                 .build();
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 }

@@ -1,7 +1,8 @@
 package com.ayahathout.book_service.services.impls;
 
-import com.ayahathout.book_service.dtos.PublisherDTO;
+import com.ayahathout.book_service.dtos.PublisherCreateDTO;
 import com.ayahathout.book_service.dtos.PublisherResponseDTO;
+import com.ayahathout.book_service.dtos.PublisherUpdateDTO;
 import com.ayahathout.book_service.exceptions.BadRequestException;
 import com.ayahathout.book_service.exceptions.ResourceNotFoundException;
 import com.ayahathout.book_service.mappers.PublisherMapper;
@@ -36,26 +37,57 @@ public class PublisherServiceImpl implements PublisherService {
     }
 
     @Override
-    public PublisherResponseDTO createPublisher(PublisherDTO publisherDTO) {
-        Publisher publisher = publisherMapper.toEntity(publisherDTO);
+    public PublisherResponseDTO createPublisher(PublisherCreateDTO publisherCreateDTO) {
+        Publisher publisher = publisherMapper.toEntity(publisherCreateDTO);
+
+        // Validate name ==> Must be unique
+        if (publisherRepository.existsByName(publisher.getName())) {
+            throw new BadRequestException("Publisher already exists with name " + publisher.getName());
+        }
+
+        // Validate phone ==> Must be unique
+        if (publisherRepository.existsByPhone(publisher.getPhone())) {
+            throw new BadRequestException("Publisher already exists with phone " + publisher.getPhone());
+        }
+
+        // Validate email ==> Must be unique
+        if (publisherRepository.existsByEmail(publisher.getEmail())) {
+            throw new BadRequestException("Publisher already exists with email " + publisher.getEmail());
+        }
+
         return publisherMapper.toResponseDTO(publisherRepository.save(publisher));
     }
 
     @Override
-    public PublisherResponseDTO updatePublisher(Long id, PublisherDTO publisherDTO) {
+    public PublisherResponseDTO updatePublisher(Long id, PublisherUpdateDTO publisherUpdateDTO) {
         return publisherRepository.findById(id)
                 .map(publisher -> {
-                    if (publisherDTO.email() != null) {
-                        publisher.setEmail(publisherDTO.email());
+                    if (publisherUpdateDTO.getEmail() != null) {
+                        // Validate email ==> Must be unique
+                        if (publisherRepository.existsByEmail(publisherUpdateDTO.getEmail())) {
+                            throw new BadRequestException("Publisher already exists with email " + publisherUpdateDTO.getEmail());
+                        }
+
+                        publisher.setEmail(publisherUpdateDTO.getEmail());
                     }
-                    if (publisherDTO.address() != null) {
-                        publisher.setAddress(publisherDTO.address());
+                    if (publisherUpdateDTO.getAddress() != null) {
+                        publisher.setAddress(publisherUpdateDTO.getAddress());
                     }
-                    if (publisherDTO.phone() != null) {
-                        publisher.setPhone(publisherDTO.phone());
+                    if (publisherUpdateDTO.getPhone() != null) {
+                        // Validate phone ==> Must be unique
+                        if (publisherRepository.existsByPhone(publisherUpdateDTO.getPhone())) {
+                            throw new BadRequestException("Publisher already exists with phone " + publisherUpdateDTO.getPhone());
+                        }
+
+                        publisher.setPhone(publisherUpdateDTO.getPhone());
                     }
-                    if (publisherDTO.name() != null) {
-                        publisher.setName(publisherDTO.name());
+                    if (publisherUpdateDTO.getName() != null) {
+                        // Validate name ==> Must be unique
+                        if (publisherRepository.existsByName(publisherUpdateDTO.getName())) {
+                            throw new BadRequestException("Publisher already exists with name " + publisherUpdateDTO.getName());
+                        }
+
+                        publisher.setName(publisherUpdateDTO.getName());
                     }
                     return publisherRepository.save(publisher);
                 })

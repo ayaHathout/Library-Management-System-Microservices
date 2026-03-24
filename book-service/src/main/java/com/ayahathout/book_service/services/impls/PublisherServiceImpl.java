@@ -51,7 +51,7 @@ public class PublisherServiceImpl implements PublisherService {
         }
 
         // Validate email ==> Must be unique
-        if (publisherRepository.existsByEmail(publisher.getEmail())) {
+        if (publisherCreateDTO.getEmail() != null && publisherRepository.existsByEmail(publisher.getEmail())) {
             throw new BadRequestException("Publisher already exists with email " + publisher.getEmail());
         }
 
@@ -62,33 +62,41 @@ public class PublisherServiceImpl implements PublisherService {
     public PublisherResponseDTO updatePublisher(Long id, PublisherUpdateDTO publisherUpdateDTO) {
         return publisherRepository.findById(id)
                 .map(publisher -> {
-                    if (publisherUpdateDTO.getEmail() != null) {
-                        // Validate email ==> Must be unique
-                        if (publisherRepository.existsByEmail(publisherUpdateDTO.getEmail())) {
-                            throw new BadRequestException("Publisher already exists with email " + publisherUpdateDTO.getEmail());
-                        }
+                    // Validate email ==> Must be unique
+                    if (publisherUpdateDTO.getEmail() != null && !publisherUpdateDTO.getEmail().equals(publisher.getEmail()) && publisherRepository.existsByEmail(publisherUpdateDTO.getEmail())) {
+                        throw new BadRequestException("Publisher already exists with email " + publisherUpdateDTO.getEmail());
+                    }
 
+                    // Validate phone ==> Must be unique
+                    if (publisherUpdateDTO.getPhone() != null && !publisherUpdateDTO.getPhone().equals(publisher.getPhone()) && publisherRepository.existsByPhone(publisherUpdateDTO.getPhone())) {
+                        throw new BadRequestException("Publisher already exists with phone " + publisherUpdateDTO.getPhone());
+                    }
+
+                    // Validate name ==> Must be unique
+                    if (publisherUpdateDTO.getName() != null && !publisherUpdateDTO.getName().equals(publisher.getName()) && publisherRepository.existsByName(publisherUpdateDTO.getName())) {
+                        throw new BadRequestException("Publisher already exists with name " + publisherUpdateDTO.getName());
+                    }
+
+                    // Update email
+                    if (publisherUpdateDTO.getEmail() != null) {
                         publisher.setEmail(publisherUpdateDTO.getEmail());
                     }
+
+                    // Update phone
+                    if (publisherUpdateDTO.getPhone() != null) {
+                        publisher.setPhone(publisherUpdateDTO.getPhone());
+                    }
+
+                    // Update name
+                    if (publisherUpdateDTO.getName() != null) {
+                        publisher.setName(publisherUpdateDTO.getName());
+                    }
+
+                    // Update address
                     if (publisherUpdateDTO.getAddress() != null) {
                         publisher.setAddress(publisherUpdateDTO.getAddress());
                     }
-                    if (publisherUpdateDTO.getPhone() != null) {
-                        // Validate phone ==> Must be unique
-                        if (publisherRepository.existsByPhone(publisherUpdateDTO.getPhone())) {
-                            throw new BadRequestException("Publisher already exists with phone " + publisherUpdateDTO.getPhone());
-                        }
 
-                        publisher.setPhone(publisherUpdateDTO.getPhone());
-                    }
-                    if (publisherUpdateDTO.getName() != null) {
-                        // Validate name ==> Must be unique
-                        if (publisherRepository.existsByName(publisherUpdateDTO.getName())) {
-                            throw new BadRequestException("Publisher already exists with name " + publisherUpdateDTO.getName());
-                        }
-
-                        publisher.setName(publisherUpdateDTO.getName());
-                    }
                     return publisherRepository.save(publisher);
                 })
                 .map(publisherMapper::toResponseDTO)

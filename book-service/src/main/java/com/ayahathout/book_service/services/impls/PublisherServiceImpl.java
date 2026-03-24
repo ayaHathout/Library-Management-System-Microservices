@@ -72,6 +72,11 @@ public class PublisherServiceImpl implements PublisherService {
                         throw new BadRequestException("Publisher already exists with phone " + publisherUpdateDTO.getPhone());
                     }
 
+                    // Validate name ==> Should not be empty
+                    if (publisherUpdateDTO.getName() != null && publisherUpdateDTO.getName().isBlank()) {
+                        throw new BadRequestException("Publisher name cannot be empty");
+                    }
+
                     // Validate name ==> Must be unique
                     if (publisherUpdateDTO.getName() != null && !publisherUpdateDTO.getName().equals(publisher.getName()) && publisherRepository.existsByName(publisherUpdateDTO.getName())) {
                         throw new BadRequestException("Publisher already exists with name " + publisherUpdateDTO.getName());

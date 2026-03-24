@@ -1,8 +1,10 @@
 package com.ayahathout.book_service.controllers;
 
-import com.ayahathout.book_service.dtos.AuthorDTO;
+import com.ayahathout.book_service.dtos.AuthorCreateDTO;
+import com.ayahathout.book_service.dtos.AuthorUpdateDTO;
 import com.ayahathout.book_service.dtos.AuthorResponseDTO;
 import com.ayahathout.book_service.services.interfaces.AuthorService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,14 +19,14 @@ public class AuthorController {
     private final AuthorService authorService;
 
     @PostMapping
-    public ResponseEntity<AuthorResponseDTO> createAuthor(@RequestBody AuthorDTO authorDTO) {
-        AuthorResponseDTO retAuthor = authorService.createAuthor(authorDTO);
+    public ResponseEntity<AuthorResponseDTO> createAuthor(@Valid @RequestBody AuthorCreateDTO authorCreateDTO) {
+        AuthorResponseDTO retAuthor = authorService.createAuthor(authorCreateDTO);
         return ResponseEntity.created(URI.create("/authors/" + retAuthor.id())).body(retAuthor);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<AuthorResponseDTO> updateAuthor(@PathVariable Long id, @RequestBody AuthorDTO updatedAuthor) {
-        AuthorResponseDTO author = authorService.updateAuthor(id, updatedAuthor);
+    public ResponseEntity<AuthorResponseDTO> updateAuthor(@PathVariable Long id, @RequestBody AuthorUpdateDTO authorUpdateDTO) {
+        AuthorResponseDTO author = authorService.updateAuthor(id, authorUpdateDTO);
         return ResponseEntity.ok(author);
     }
 

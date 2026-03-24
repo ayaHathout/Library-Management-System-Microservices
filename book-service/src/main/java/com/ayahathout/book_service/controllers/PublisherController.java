@@ -25,7 +25,7 @@ public class PublisherController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<PublisherResponseDTO> updatePublisher(@PathVariable Long id, @RequestBody PublisherUpdateDTO publisherUpdateDTO) {
+    public ResponseEntity<PublisherResponseDTO> updatePublisher(@PathVariable Long id, @Valid @RequestBody PublisherUpdateDTO publisherUpdateDTO) {
         PublisherResponseDTO publisher = publisherService.updatePublisher(id, publisherUpdateDTO);
         return ResponseEntity.ok(publisher);
     }

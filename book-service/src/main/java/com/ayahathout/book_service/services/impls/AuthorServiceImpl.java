@@ -1,7 +1,9 @@
 package com.ayahathout.book_service.services.impls;
 
-import com.ayahathout.book_service.dtos.AuthorDTO;
+import com.ayahathout.book_service.dtos.AuthorCreateDTO;
+import com.ayahathout.book_service.dtos.AuthorUpdateDTO;
 import com.ayahathout.book_service.dtos.AuthorResponseDTO;
+import com.ayahathout.book_service.exceptions.BadRequestException;
 import com.ayahathout.book_service.exceptions.ResourceNotFoundException;
 import com.ayahathout.book_service.mappers.AuthorMapper;
 import com.ayahathout.book_service.repositories.AuthorRepository;
@@ -34,22 +36,27 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
-    public AuthorResponseDTO createAuthor(AuthorDTO authorDTO) {
-        return authorMapper.toResponseDTO(authorRepository.save(authorMapper.toEntity(authorDTO)));
+    public AuthorResponseDTO createAuthor(AuthorCreateDTO authorCreateDTO) {
+        return authorMapper.toResponseDTO(authorRepository.save(authorMapper.toEntity(authorCreateDTO)));
     }
 
     @Override
-    public AuthorResponseDTO updateAuthor(Long id, AuthorDTO updateAuthorDTO) {
+    public AuthorResponseDTO updateAuthor(Long id, AuthorUpdateDTO authorUpdateDTO) {
         return authorRepository.findById(id)
                 .map(author -> {
-                    if (updateAuthorDTO.firstName() != null) {
-                        author.setFirstName(updateAuthorDTO.firstName());
+                    // Validate first name ==> Should not be empty
+                    if (authorUpdateDTO.firstName() != null && authorUpdateDTO.firstName().isBlank()) {
+                        throw new BadRequestException("Author first name cannot be empty");
                     }
-                    if (updateAuthorDTO.lastName() != null) {
-                        author.setLastName(updateAuthorDTO.lastName());
+
+                    if (authorUpdateDTO.firstName() != null) {
+                        author.setFirstName(authorUpdateDTO.firstName());
                     }
-                    if (updateAuthorDTO.bio() != null) {
-                        author.setBio(updateAuthorDTO.bio());
+                    if (authorUpdateDTO.lastName() != null) {
+                        author.setLastName(authorUpdateDTO.lastName());
+                    }
+                    if (authorUpdateDTO.bio() != null) {
+                        author.setBio(authorUpdateDTO.bio());
                     }
                     return authorRepository.save(author);
                 })

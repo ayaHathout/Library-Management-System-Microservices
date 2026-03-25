@@ -10,9 +10,11 @@ import com.ayahathout.book_service.repositories.AuthorRepository;
 import com.ayahathout.book_service.services.interfaces.AuthorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Transactional
 @Service
 @RequiredArgsConstructor
 public class AuthorServiceImpl implements AuthorService {
@@ -20,6 +22,7 @@ public class AuthorServiceImpl implements AuthorService {
 
     private final AuthorMapper authorMapper;
 
+    @Transactional(readOnly = true)
     @Override
     public List<AuthorResponseDTO> getAllAuthors() {
         return authorRepository.findAll()
@@ -28,6 +31,7 @@ public class AuthorServiceImpl implements AuthorService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public AuthorResponseDTO getAuthorById(Long id) {
         return authorRepository.findById(id)

@@ -11,9 +11,11 @@ import com.ayahathout.book_service.repositories.CategoryRepository;
 import com.ayahathout.book_service.services.interfaces.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Transactional
 @Service
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
@@ -21,6 +23,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryMapper categoryMapper;
 
+    @Transactional(readOnly = true)
     @Override
     public List<CategoryResponseDTO> getAllCategories() {
         return categoryRepository.findAllWithSubCategories()
@@ -29,6 +32,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public CategoryResponseDTO getCategoryById(Long id) {
         return categoryRepository.findById(id)

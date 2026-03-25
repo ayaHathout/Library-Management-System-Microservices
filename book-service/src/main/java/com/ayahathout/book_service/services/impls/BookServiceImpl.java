@@ -71,12 +71,9 @@ public class BookServiceImpl implements BookService {
         }
 
         // Get the categories
-        if (bookCreateDTO.getCategoryIds() != null) {
-            List<Category> categories = categoryRepository.findAllById(bookCreateDTO.getCategoryIds());
-            if (categories.size() != bookCreateDTO.getCategoryIds().size()) {
-                throw new ResourceNotFoundException("Some categories not found!");
-            }
-            book.setCategories(new HashSet<>(categories));
+        List<Category> categories = categoryRepository.findAllById(bookCreateDTO.getCategoryIds());
+        if (categories.size() != bookCreateDTO.getCategoryIds().size()) {
+            throw new ResourceNotFoundException("Some categories not found!");
         }
 
         // To make availableCopies = totalCopies
@@ -84,6 +81,7 @@ public class BookServiceImpl implements BookService {
 
         book.setPublisher(publisher);
         book.setAuthors(new HashSet<>(authors));
+        book.setCategories(new HashSet<>(categories));
 
         return bookMapper.toResponseDTO(bookRepository.save(book));
     }
@@ -161,6 +159,11 @@ public class BookServiceImpl implements BookService {
                             throw new ResourceNotFoundException("Some authors not found!");
                         }
                         book.setAuthors(new HashSet<>(authors));
+                    }
+
+                    // Validate categories ==> Must have at least one category
+                    if (bookUpdateDTO.getCategoryIds() != null && bookUpdateDTO.getCategoryIds().isEmpty()) {
+                        throw new BadRequestException("Book must have at least one category");
                     }
 
                     if (bookUpdateDTO.getCategoryIds() != null && !bookUpdateDTO.getCategoryIds().isEmpty()) {

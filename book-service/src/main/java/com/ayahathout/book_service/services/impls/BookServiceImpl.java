@@ -17,11 +17,13 @@ import com.ayahathout.book_service.repositories.PublisherRepository;
 import com.ayahathout.book_service.services.interfaces.BookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Transactional
 @Service
 @RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
@@ -35,11 +37,13 @@ public class BookServiceImpl implements BookService {
 
     private final CategoryRepository categoryRepository;
 
+    @Transactional(readOnly = true)
     @Override
     public List<BookResponseDTO> getAllBooks() {
         return bookRepository.findAllWithDetails().stream().map(bookMapper::toResponseDTO).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Override
     public BookResponseDTO getBookById(Long id) {
         return bookRepository.findByIdWithDetails(id)
@@ -51,20 +55,28 @@ public class BookServiceImpl implements BookService {
     public BookResponseDTO createBook(BookCreateDTO bookCreateDTO) {
         Book book = bookMapper.toEntity(bookCreateDTO);
 
+        // Validate ISBN ==> Must be unique
+        if (bookRepository.existsByIsbn(bookCreateDTO.getIsbn())) {
+            throw new BadRequestException("Book already exists with ISBN " + bookCreateDTO.getIsbn());
+        }
+
         // Get the publisher
-        Publisher publisher = publisherRepository.findById(bookCreateDTO.publisherId())
-                .orElseThrow(() -> new ResourceNotFoundException("Publisher not found with id: " + bookCreateDTO.publisherId()));
+        Publisher publisher = publisherRepository.findById(bookCreateDTO.getPublisherId())
+                .orElseThrow(() -> new ResourceNotFoundException("Publisher not found with id: " + bookCreateDTO.getPublisherId()));
 
         // Get the authors
-        List<Author> authors = authorRepository.findAllById(bookCreateDTO.authorIds());
-        if (authors.size() != bookCreateDTO.authorIds().size()) {
+        List<Author> authors = authorRepository.findAllById(bookCreateDTO.getAuthorIds());
+        if (authors.size() != bookCreateDTO.getAuthorIds().size()) {
             throw new ResourceNotFoundException("Some authors not found!");
         }
 
         // Get the categories
-        List<Category> categories = categoryRepository.findAllById(bookCreateDTO.categoryIds());
-        if (categories.size() != bookCreateDTO.categoryIds().size()) {
-            throw new ResourceNotFoundException("Some categories not found!");
+        if (bookCreateDTO.getCategoryIds() != null) {
+            List<Category> categories = categoryRepository.findAllById(bookCreateDTO.getCategoryIds());
+            if (categories.size() != bookCreateDTO.getCategoryIds().size()) {
+                throw new ResourceNotFoundException("Some categories not found!");
+            }
+            book.setCategories(new HashSet<>(categories));
         }
 
         // To make availableCopies = totalCopies
@@ -72,41 +84,45 @@ public class BookServiceImpl implements BookService {
 
         book.setPublisher(publisher);
         book.setAuthors(new HashSet<>(authors));
-        book.setCategories(new HashSet<>(categories));
 
         return bookMapper.toResponseDTO(bookRepository.save(book));
     }
 
     @Override
-    public BookResponseDTO updateBook(Long id, BookUpdateDTO updatedBookDTO) {
+    public BookResponseDTO updateBook(Long id, BookUpdateDTO bookUpdateDTO) {
         return bookRepository.findById(id)
                 .map(book -> {
-                    if (updatedBookDTO.title() != null) {
-                        book.setTitle(updatedBookDTO.title());
+                    // Validate ISBN ==> Must be unique
+                    if (bookUpdateDTO.getIsbn() != null && !bookUpdateDTO.getIsbn().equals(book.getIsbn()) && bookRepository.existsByIsbn(bookUpdateDTO.getIsbn())) {
+                        throw new BadRequestException("Book already exists with ISBN " + bookUpdateDTO.getIsbn());
                     }
-                    if (updatedBookDTO.isbn() != null) {
-                        book.setIsbn(updatedBookDTO.isbn());
+
+                    if (bookUpdateDTO.getTitle() != null) {
+                        book.setTitle(bookUpdateDTO.getTitle());
                     }
-                    if (updatedBookDTO.language() != null) {
-                        book.setLanguage(updatedBookDTO.language());
+                    if (bookUpdateDTO.getIsbn() != null) {
+                        book.setIsbn(bookUpdateDTO.getIsbn());
                     }
-                    if (updatedBookDTO.edition() != null) {
-                        book.setEdition(updatedBookDTO.edition());
+                    if (bookUpdateDTO.getLanguage() != null) {
+                        book.setLanguage(bookUpdateDTO.getLanguage());
                     }
-                    if (updatedBookDTO.publicationYear() != null) {
-                        book.setPublicationYear(updatedBookDTO.publicationYear());
+                    if (bookUpdateDTO.getEdition() != null) {
+                        book.setEdition(bookUpdateDTO.getEdition());
                     }
-                    if (updatedBookDTO.summary() != null) {
-                        book.setSummary(updatedBookDTO.summary());
+                    if (bookUpdateDTO.getPublicationYear() != null) {
+                        book.setPublicationYear(bookUpdateDTO.getPublicationYear());
                     }
-                    if (updatedBookDTO.coverImage() != null) {
-                        book.setCoverImage(updatedBookDTO.coverImage());
+                    if (bookUpdateDTO.getSummary() != null) {
+                        book.setSummary(bookUpdateDTO.getSummary());
+                    }
+                    if (bookUpdateDTO.getCoverImage() != null) {
+                        book.setCoverImage(bookUpdateDTO.getCoverImage());
                     }
 
                     // Handle the total copies
-                    if (updatedBookDTO.totalCopies() != null) {
+                    if (bookUpdateDTO.getTotalCopies() != null) {
                         Long currentTotal = book.getTotalCopies();
-                        Long newTotal = updatedBookDTO.totalCopies();
+                        Long newTotal = bookUpdateDTO.getTotalCopies();
                         Long currentAvailable = book.getAvailableCopies();
 
                         book.setTotalCopies(newTotal);
@@ -121,30 +137,35 @@ public class BookServiceImpl implements BookService {
                         }
                     }
 
-                    if (updatedBookDTO.availableCopies() != null) {
-                        if (updatedBookDTO.availableCopies() > book.getTotalCopies()) {
+                    if (bookUpdateDTO.getAvailableCopies() != null) {
+                        if (bookUpdateDTO.getAvailableCopies() > book.getTotalCopies()) {
                             throw new BadRequestException("Available copies can't be greater than the total copies");
                         }
-                        book.setAvailableCopies(updatedBookDTO.availableCopies());
+                        book.setAvailableCopies(bookUpdateDTO.getAvailableCopies());
                     }
 
-                    if (updatedBookDTO.publisherId() != null) {
-                        Publisher publisher = publisherRepository.findById(updatedBookDTO.publisherId())
-                                .orElseThrow(() -> new ResourceNotFoundException("Publisher not found with id: " + updatedBookDTO.publisherId()));
+                    if (bookUpdateDTO.getPublisherId() != null) {
+                        Publisher publisher = publisherRepository.findById(bookUpdateDTO.getPublisherId())
+                                .orElseThrow(() -> new ResourceNotFoundException("Publisher not found with id: " + bookUpdateDTO.getPublisherId()));
                         book.setPublisher(publisher);
                     }
 
-                    if (updatedBookDTO.authorIds() != null && !updatedBookDTO.authorIds().isEmpty()) {
-                        List<Author> authors = authorRepository.findAllById(updatedBookDTO.authorIds());
-                        if (authors.size() != updatedBookDTO.authorIds().size()) {
+                    // Validate authors ==> Must have at least one author
+                    if (bookUpdateDTO.getAuthorIds() != null && bookUpdateDTO.getAuthorIds().isEmpty()) {
+                        throw new BadRequestException("Book must have at least one author");
+                    }
+
+                    if (bookUpdateDTO.getAuthorIds() != null && !bookUpdateDTO.getAuthorIds().isEmpty()) {
+                        List<Author> authors = authorRepository.findAllById(bookUpdateDTO.getAuthorIds());
+                        if (authors.size() != bookUpdateDTO.getAuthorIds().size()) {
                             throw new ResourceNotFoundException("Some authors not found!");
                         }
                         book.setAuthors(new HashSet<>(authors));
                     }
 
-                    if (updatedBookDTO.categoryIds() != null && !updatedBookDTO.categoryIds().isEmpty()) {
-                        List<Category> categories = categoryRepository.findAllById(updatedBookDTO.categoryIds());
-                        if (categories.size() != updatedBookDTO.categoryIds().size()) {
+                    if (bookUpdateDTO.getCategoryIds() != null && !bookUpdateDTO.getCategoryIds().isEmpty()) {
+                        List<Category> categories = categoryRepository.findAllById(bookUpdateDTO.getCategoryIds());
+                        if (categories.size() != bookUpdateDTO.getCategoryIds().size()) {
                             throw new ResourceNotFoundException("Some categories not found!");
                         }
                         book.setCategories(new HashSet<>(categories));

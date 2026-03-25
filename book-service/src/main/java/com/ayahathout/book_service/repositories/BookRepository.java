@@ -1,6 +1,8 @@
 package com.ayahathout.book_service.repositories;
 
 import com.ayahathout.book_service.models.Book;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,4 +24,6 @@ public interface BookRepository extends JpaRepository<Book, Long> {
             "LEFT JOIN FETCH b.publisher " +
             "WHERE b.id = :id")
     Optional<Book> findByIdWithDetails(@Param("id") Long id);
+
+    boolean existsByIsbn(@NotBlank(message = "Book isbn cannot be empty") @Pattern(regexp = "^(97(8|9))?\\d{9}(\\d|X)$", message = "Invalid ISBN") String isbn);
 }

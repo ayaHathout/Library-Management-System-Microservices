@@ -15,7 +15,7 @@ import java.util.Set;
 @NoArgsConstructor
 public class BookCreateDTO implements Serializable {
     @NotBlank(message = "Book title cannot be empty")
-    @Size(max = 255)
+    @Size(max = 255, message = "Title cannot exceed 255 characters")
     private String title;
 
     @NotBlank(message = "Book isbn cannot be empty")

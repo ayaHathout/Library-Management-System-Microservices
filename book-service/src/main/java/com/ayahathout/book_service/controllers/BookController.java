@@ -4,6 +4,7 @@ import com.ayahathout.book_service.dtos.BookCreateDTO;
 import com.ayahathout.book_service.dtos.BookResponseDTO;
 import com.ayahathout.book_service.dtos.BookUpdateDTO;
 import com.ayahathout.book_service.services.interfaces.BookService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,13 +19,13 @@ public class BookController {
     private final BookService bookService;
 
     @PostMapping
-    public ResponseEntity<BookResponseDTO> createBook(@RequestBody BookCreateDTO bookCreateDTO) {
+    public ResponseEntity<BookResponseDTO> createBook(@Valid @RequestBody BookCreateDTO bookCreateDTO) {
         BookResponseDTO retBook = bookService.createBook(bookCreateDTO);
         return ResponseEntity.created(URI.create("/books/" + retBook.id())).body(retBook);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<BookResponseDTO> updateBook(@PathVariable Long id, @RequestBody BookUpdateDTO bookUpdateDTO) {
+    public ResponseEntity<BookResponseDTO> updateBook(@PathVariable Long id, @Valid @RequestBody BookUpdateDTO bookUpdateDTO) {
         BookResponseDTO book = bookService.updateBook(id, bookUpdateDTO);
         return ResponseEntity.ok(book);
     }

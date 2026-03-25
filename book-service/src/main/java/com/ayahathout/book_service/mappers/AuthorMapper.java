@@ -1,7 +1,6 @@
 package com.ayahathout.book_service.mappers;
 
-import com.ayahathout.book_service.dtos.AuthorDTO;
-import com.ayahathout.book_service.dtos.AuthorResponseDTO;
+import com.ayahathout.book_service.dtos.*;
 import com.ayahathout.book_service.models.Author;
 import com.ayahathout.book_service.models.Book;
 import org.mapstruct.Mapper;
@@ -13,9 +12,10 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public interface AuthorMapper {
     // For create
-    AuthorDTO toDTO(Author author);
+    Author toEntity(AuthorCreateDTO authorCreateDTO);
 
-    Author toEntity(AuthorDTO authorDTO);
+    // For update
+    Author toEntity(AuthorUpdateDTO authorUpdateDTO);
 
     // For get
     @Mapping(target = "bookTitles", expression = "java(mapBooks(author.getBooks()))")

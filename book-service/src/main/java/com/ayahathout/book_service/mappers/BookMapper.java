@@ -2,7 +2,6 @@ package com.ayahathout.book_service.mappers;
 
 import com.ayahathout.book_service.dtos.BookCreateDTO;
 import com.ayahathout.book_service.dtos.BookResponseDTO;
-import com.ayahathout.book_service.dtos.BookUpdateDTO;
 import com.ayahathout.book_service.models.Author;
 import com.ayahathout.book_service.models.Book;
 import com.ayahathout.book_service.models.Category;
@@ -15,10 +14,8 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface BookMapper {
-    BookUpdateDTO toDTO(Book book);
-
     @Mapping(target = "publisher", ignore = true)
-    Book toEntity(BookCreateDTO bookDTO);
+    Book toEntity(BookCreateDTO bookCreateDTO);
 
     @Mapping(target = "publisherId", source = "publisher.id")
     @Mapping(target = "publisherName", source = "publisher.name")

@@ -1,16 +1,20 @@
 package com.ayahathout.book_service.services.impls;
 
-import com.ayahathout.book_service.dtos.AuthorDTO;
+import com.ayahathout.book_service.dtos.AuthorCreateDTO;
+import com.ayahathout.book_service.dtos.AuthorUpdateDTO;
 import com.ayahathout.book_service.dtos.AuthorResponseDTO;
+import com.ayahathout.book_service.exceptions.BadRequestException;
 import com.ayahathout.book_service.exceptions.ResourceNotFoundException;
 import com.ayahathout.book_service.mappers.AuthorMapper;
 import com.ayahathout.book_service.repositories.AuthorRepository;
 import com.ayahathout.book_service.services.interfaces.AuthorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Transactional
 @Service
 @RequiredArgsConstructor
 public class AuthorServiceImpl implements AuthorService {
@@ -18,6 +22,7 @@ public class AuthorServiceImpl implements AuthorService {
 
     private final AuthorMapper authorMapper;
 
+    @Transactional(readOnly = true)
     @Override
     public List<AuthorResponseDTO> getAllAuthors() {
         return authorRepository.findAll()
@@ -26,6 +31,7 @@ public class AuthorServiceImpl implements AuthorService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public AuthorResponseDTO getAuthorById(Long id) {
         return authorRepository.findById(id)
@@ -34,22 +40,27 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
-    public AuthorResponseDTO createAuthor(AuthorDTO authorDTO) {
-        return authorMapper.toResponseDTO(authorRepository.save(authorMapper.toEntity(authorDTO)));
+    public AuthorResponseDTO createAuthor(AuthorCreateDTO authorCreateDTO) {
+        return authorMapper.toResponseDTO(authorRepository.save(authorMapper.toEntity(authorCreateDTO)));
     }
 
     @Override
-    public AuthorResponseDTO updateAuthor(Long id, AuthorDTO updateAuthorDTO) {
+    public AuthorResponseDTO updateAuthor(Long id, AuthorUpdateDTO authorUpdateDTO) {
         return authorRepository.findById(id)
                 .map(author -> {
-                    if (updateAuthorDTO.firstName() != null) {
-                        author.setFirstName(updateAuthorDTO.firstName());
+                    // Validate first name ==> Should not be empty
+                    if (authorUpdateDTO.firstName() != null && authorUpdateDTO.firstName().isBlank()) {
+                        throw new BadRequestException("Author first name cannot be empty");
                     }
-                    if (updateAuthorDTO.lastName() != null) {
-                        author.setLastName(updateAuthorDTO.lastName());
+
+                    if (authorUpdateDTO.firstName() != null) {
+                        author.setFirstName(authorUpdateDTO.firstName());
                     }
-                    if (updateAuthorDTO.bio() != null) {
-                        author.setBio(updateAuthorDTO.bio());
+                    if (authorUpdateDTO.lastName() != null) {
+                        author.setLastName(authorUpdateDTO.lastName());
+                    }
+                    if (authorUpdateDTO.bio() != null) {
+                        author.setBio(authorUpdateDTO.bio());
                     }
                     return authorRepository.save(author);
                 })

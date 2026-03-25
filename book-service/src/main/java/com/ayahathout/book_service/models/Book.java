@@ -25,12 +25,13 @@ public class Book implements Serializable {
     @Column(nullable = false)
     private String title;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String isbn;
 
+    @Column(nullable = false)
     private String edition;
 
-    @Column(name = "publication_year")
+    @Column(name = "publication_year", nullable = false)
     private Integer publicationYear;
 
     @Enumerated(EnumType.STRING)

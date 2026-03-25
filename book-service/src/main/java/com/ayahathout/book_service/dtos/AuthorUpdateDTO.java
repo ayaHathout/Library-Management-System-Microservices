@@ -1,6 +1,6 @@
 package com.ayahathout.book_service.dtos;
 
-public record AuthorDTO(
+public record AuthorUpdateDTO(
         String firstName,
         String lastName,
         String bio

@@ -11,9 +11,11 @@ import com.ayahathout.book_service.repositories.PublisherRepository;
 import com.ayahathout.book_service.services.interfaces.PublisherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Transactional
 @Service
 @RequiredArgsConstructor
 public class PublisherServiceImpl implements PublisherService {
@@ -21,6 +23,7 @@ public class PublisherServiceImpl implements PublisherService {
 
     private final PublisherMapper publisherMapper;
 
+    @Transactional(readOnly = true)
     @Override
     public List<PublisherResponseDTO> getAllPublishers() {
         return publisherRepository.findAllWithBooks()
@@ -29,6 +32,7 @@ public class PublisherServiceImpl implements PublisherService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public PublisherResponseDTO getPublisherById(Long id) {
         return publisherRepository.findById(id)
@@ -70,6 +74,11 @@ public class PublisherServiceImpl implements PublisherService {
                     // Validate phone ==> Must be unique
                     if (publisherUpdateDTO.getPhone() != null && !publisherUpdateDTO.getPhone().equals(publisher.getPhone()) && publisherRepository.existsByPhone(publisherUpdateDTO.getPhone())) {
                         throw new BadRequestException("Publisher already exists with phone " + publisherUpdateDTO.getPhone());
+                    }
+
+                    // Validate name ==> Should not be empty
+                    if (publisherUpdateDTO.getName() != null && publisherUpdateDTO.getName().isBlank()) {
+                        throw new BadRequestException("Publisher name cannot be empty");
                     }
 
                     // Validate name ==> Must be unique

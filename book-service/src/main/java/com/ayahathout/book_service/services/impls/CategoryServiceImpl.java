@@ -1,7 +1,8 @@
 package com.ayahathout.book_service.services.impls;
 
-import com.ayahathout.book_service.dtos.CategoryDTO;
+import com.ayahathout.book_service.dtos.CategoryCreateDTO;
 import com.ayahathout.book_service.dtos.CategoryResponseDTO;
+import com.ayahathout.book_service.dtos.CategoryUpdateDTO;
 import com.ayahathout.book_service.exceptions.BadRequestException;
 import com.ayahathout.book_service.exceptions.ResourceNotFoundException;
 import com.ayahathout.book_service.mappers.CategoryMapper;
@@ -36,12 +37,17 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryResponseDTO createCategory(CategoryDTO categoryDTO) {
-        Category category = categoryMapper.toEntity(categoryDTO);
+    public CategoryResponseDTO createCategory(CategoryCreateDTO categoryCreateDTO) {
+        Category category = categoryMapper.toEntity(categoryCreateDTO);
 
-        if (categoryDTO.parentId() != null) {
-            Category parent = categoryRepository.findById(categoryDTO.parentId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Parent category not found with id: " + categoryDTO.parentId()));
+        // Validate name ==> must be unique
+        if (categoryRepository.existsByName(category.getName())) {
+            throw new BadRequestException("Category already exists with name " + category.getName());
+        }
+
+        if (categoryCreateDTO.getParentId() != null) {
+            Category parent = categoryRepository.findById(categoryCreateDTO.getParentId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Parent category not found with id: " + categoryCreateDTO.getParentId()));
             category.setParent(parent);
         }
 
@@ -49,15 +55,25 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryResponseDTO updateCategory(Long id, CategoryDTO updateCategoryDTO) {
+    public CategoryResponseDTO updateCategory(Long id, CategoryUpdateDTO categoryUpdateDTO) {
         return categoryRepository.findById(id)
                 .map(category -> {
-                    if (updateCategoryDTO.name() != null) {
-                        category.setName(updateCategoryDTO.name());
+                    // Validate name ==> Should not be empty
+                    if (categoryUpdateDTO.name() != null && categoryUpdateDTO.name().isBlank()) {
+                        throw new BadRequestException("Category name cannot be empty");
                     }
-                    if (updateCategoryDTO.parentId() != null) {
-                        Category parent = categoryRepository.findById(updateCategoryDTO.parentId())
-                                .orElseThrow(() -> new ResourceNotFoundException("Parent category not found with id: " + updateCategoryDTO.parentId()));
+
+                    // Validate name ==> must be unique
+                    if (categoryUpdateDTO.name() != null && !categoryUpdateDTO.name().equals(category.getName()) && categoryRepository.existsByName(categoryUpdateDTO.name())) {
+                        throw new BadRequestException("Category already exists with name " + categoryUpdateDTO.name());
+                    }
+
+                    if (categoryUpdateDTO.name() != null) {
+                        category.setName(categoryUpdateDTO.name());
+                    }
+                    if (categoryUpdateDTO.parentId() != null) {
+                        Category parent = categoryRepository.findById(categoryUpdateDTO.parentId())
+                                .orElseThrow(() -> new ResourceNotFoundException("Parent category not found with id: " + categoryUpdateDTO.parentId()));
                         category.setParent(parent);
                     }
 

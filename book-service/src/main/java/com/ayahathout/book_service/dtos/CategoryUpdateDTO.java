@@ -1,6 +1,6 @@
 package com.ayahathout.book_service.dtos;
 
-public record CategoryDTO(
+public record CategoryUpdateDTO(
         String name,
         Long parentId
 ) {

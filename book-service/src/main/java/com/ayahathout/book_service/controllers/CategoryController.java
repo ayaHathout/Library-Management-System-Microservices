@@ -1,8 +1,10 @@
 package com.ayahathout.book_service.controllers;
 
-import com.ayahathout.book_service.dtos.CategoryDTO;
+import com.ayahathout.book_service.dtos.CategoryCreateDTO;
 import com.ayahathout.book_service.dtos.CategoryResponseDTO;
+import com.ayahathout.book_service.dtos.CategoryUpdateDTO;
 import com.ayahathout.book_service.services.interfaces.CategoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,14 +19,14 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @PostMapping
-    public ResponseEntity<CategoryResponseDTO> createCategory(@RequestBody CategoryDTO categoryDTO) {
-        CategoryResponseDTO retCategory = categoryService.createCategory(categoryDTO);
+    public ResponseEntity<CategoryResponseDTO> createCategory(@Valid @RequestBody CategoryCreateDTO categoryCreateDTO) {
+        CategoryResponseDTO retCategory = categoryService.createCategory(categoryCreateDTO);
         return ResponseEntity.created(URI.create("/categories/" + retCategory.id())).body(retCategory);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<CategoryResponseDTO> updateCategory(@PathVariable Long id, @RequestBody CategoryDTO updatedCategory) {
-        CategoryResponseDTO category = categoryService.updateCategory(id, updatedCategory);
+    public ResponseEntity<CategoryResponseDTO> updateCategory(@PathVariable Long id, @RequestBody CategoryUpdateDTO categoryUpdateDTO) {
+        CategoryResponseDTO category = categoryService.updateCategory(id, categoryUpdateDTO);
         return ResponseEntity.ok(category);
     }
 

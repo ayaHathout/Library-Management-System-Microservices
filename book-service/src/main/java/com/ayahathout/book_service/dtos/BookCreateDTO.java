@@ -43,5 +43,6 @@ public class BookCreateDTO implements Serializable {
     @NotEmpty(message = "At least one author is required")
     private Set<Long> authorIds;
 
+    @NotEmpty(message = "At least one category is required")
     private Set<Long> categoryIds;
 }

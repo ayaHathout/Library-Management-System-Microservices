@@ -26,17 +26,13 @@ public class Borrower implements Serializable {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @Column(length = 255)
     private String email;
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 11)
     private String phone;
 
     @Column(nullable = false)
     private String address;
-
-    @Column(name = "is_active")
-    private Boolean isActive = true;
 
     // ----------------------------------------------------------------------
     @OneToMany(mappedBy = "borrower", cascade = CascadeType.ALL)

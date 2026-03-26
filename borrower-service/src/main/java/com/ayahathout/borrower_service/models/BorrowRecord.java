@@ -21,7 +21,7 @@ public class BorrowRecord implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "borrow_date")
+    @Column(name = "borrow_date", nullable = false)
     private LocalDate borrowDate = LocalDate.now();
 
     @Column(name = "due_date", nullable = false)

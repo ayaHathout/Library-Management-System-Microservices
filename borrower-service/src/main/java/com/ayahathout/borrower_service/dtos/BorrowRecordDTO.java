@@ -1,6 +1,6 @@
-package com.example.libraryManagementSystem.dtos;
+package com.ayahathout.borrower_service.dtos;
 
-import com.example.libraryManagementSystem.enums.Status;
+import com.ayahathout.borrower_service.enums.Status;
 
 import java.time.LocalDate;
 

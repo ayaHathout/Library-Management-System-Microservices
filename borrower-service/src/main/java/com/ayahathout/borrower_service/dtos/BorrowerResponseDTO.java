@@ -1,4 +1,4 @@
-package com.example.libraryManagementSystem.dtos;
+package com.ayahathout.borrower_service.dtos;
 
 public record BorrowerResponseDTO(
         Long id,

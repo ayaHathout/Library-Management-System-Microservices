@@ -26,7 +26,7 @@ public class Publisher implements Serializable {
     @Column(nullable = false, unique = true)
     private String phone;
 
-    @Column(unique = true, length = 255)
+    @Column(unique = true)
     private String email;
 
     private String address;

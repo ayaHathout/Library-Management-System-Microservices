@@ -22,7 +22,7 @@ spring:
             - id: borrower-route
               uri: lb://borrower-service
               predicates:
-                - Path=/borrowers/**
+                - Path=/borrowers/**, /borrower-records/**
 
 server:
   port: 8086

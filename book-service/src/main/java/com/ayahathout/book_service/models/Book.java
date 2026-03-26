@@ -51,13 +51,13 @@ public class Book implements Serializable {
 
     // ------------------------------------------------------
     @ManyToOne
-    @JoinColumn(name = "publisher_id")
+    @JoinColumn(name = "publisher_id", nullable = false)
     private Publisher publisher;
 
     @ManyToMany
     @JoinTable(
             name = "books_authors",
-            joinColumns = @JoinColumn(name = "book_id"),
+            joinColumns = @JoinColumn(name = "book_id", nullable = false),
             inverseJoinColumns = @JoinColumn(name = "author_id")
     )
     private Set<Author> authors = new HashSet<>();
@@ -65,7 +65,7 @@ public class Book implements Serializable {
     @ManyToMany
     @JoinTable(
             name = "books_categories",
-            joinColumns = @JoinColumn(name = "book_id"),
+            joinColumns = @JoinColumn(name = "book_id", nullable = false),
             inverseJoinColumns = @JoinColumn(name = "category_id")
     )
     private Set<Category> categories = new HashSet<>();

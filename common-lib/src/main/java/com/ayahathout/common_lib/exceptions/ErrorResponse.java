@@ -1,4 +1,4 @@
-package com.ayahathout.book_service.exceptions;
+package com.ayahathout.common_lib.exceptions;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

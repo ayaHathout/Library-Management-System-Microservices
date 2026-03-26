@@ -7,7 +7,7 @@
 	<version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 	<name>library-system</name>
-	<description>Project to contain all microservices</description>
+	<description>Aggregator for all modules</description>
   <properties>
 		<java.version>21</java.version>
 	</properties>

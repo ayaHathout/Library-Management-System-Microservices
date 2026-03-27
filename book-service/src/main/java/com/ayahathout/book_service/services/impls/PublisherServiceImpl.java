@@ -113,17 +113,14 @@ public class PublisherServiceImpl implements PublisherService {
     }
 
     @Override
-    public PublisherResponseDTO deletePublisher(Long id) {
-        return publisherRepository.findById(id)
-                .map(publisher -> {
-                    if (!publisher.getBooks().isEmpty()) {
-                        throw new BadRequestException("Cannot delete publisher with ID " + id + " because it has " + publisher.getBooks().size() + " associated books.");
-                    }
-
-                    PublisherResponseDTO deletedPublisher = publisherMapper.toResponseDTO(publisher);
-                    publisherRepository.delete(publisher);
-                    return deletedPublisher;
-                })
+    public void deletePublisher(Long id) {
+        Publisher publisherToDelete = publisherRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Publisher not found with id " + id));
+
+        if (!publisherToDelete.getBooks().isEmpty()) {
+            throw new BadRequestException("Cannot delete publisher with id " + id + " because it has " + publisherToDelete.getBooks().size() + " associated books.");
+        }
+
+        publisherRepository.delete(publisherToDelete);
     }
 }

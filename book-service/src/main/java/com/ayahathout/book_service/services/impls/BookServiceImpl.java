@@ -62,7 +62,7 @@ public class BookServiceImpl implements BookService {
 
         // Get the publisher
         Publisher publisher = publisherRepository.findById(bookCreateDTO.getPublisherId())
-                .orElseThrow(() -> new ResourceNotFoundException("Publisher not found with id: " + bookCreateDTO.getPublisherId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Publisher not found with id " + bookCreateDTO.getPublisherId()));
 
         // Get the authors
         List<Author> authors = authorRepository.findAllById(bookCreateDTO.getAuthorIds());
@@ -144,7 +144,7 @@ public class BookServiceImpl implements BookService {
 
                     if (bookUpdateDTO.getPublisherId() != null) {
                         Publisher publisher = publisherRepository.findById(bookUpdateDTO.getPublisherId())
-                                .orElseThrow(() -> new ResourceNotFoundException("Publisher not found with id: " + bookUpdateDTO.getPublisherId()));
+                                .orElseThrow(() -> new ResourceNotFoundException("Publisher not found with id " + bookUpdateDTO.getPublisherId()));
                         book.setPublisher(publisher);
                     }
 
@@ -181,13 +181,10 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookResponseDTO deleteBook(Long id) {
-        return bookRepository.findById(id)
-                .map(book -> {
-                    BookResponseDTO dto = bookMapper.toResponseDTO(book);
-                    bookRepository.delete(book);
-                    return dto;
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("Book not found with id " + id));
+    public void deleteBook(Long id) {
+        if (!bookRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Book not found with id " + id);
+        }
+        bookRepository.deleteById(id);
     }
 }

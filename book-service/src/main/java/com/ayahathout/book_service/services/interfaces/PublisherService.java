@@ -11,5 +11,5 @@ public interface PublisherService {
     PublisherResponseDTO getPublisherById(Long id);
     PublisherResponseDTO createPublisher(PublisherCreateDTO publisherCreateDTO);
     PublisherResponseDTO updatePublisher(Long id, PublisherUpdateDTO publisherUpdateDTO);
-    PublisherResponseDTO deletePublisher(Long id);
+    void deletePublisher(Long id);
 }

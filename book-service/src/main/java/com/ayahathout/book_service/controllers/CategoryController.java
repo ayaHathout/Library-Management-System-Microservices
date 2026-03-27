@@ -31,18 +31,18 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<CategoryResponseDTO> deleteCategory(@PathVariable Long id) {
-        CategoryResponseDTO category = categoryService.deleteCategory(id);
-        return ResponseEntity.ok(category);
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+        categoryService.deleteCategory(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping
     public ResponseEntity<List<CategoryResponseDTO>> getAllCategorys() {
-        List<CategoryResponseDTO> categoryList = categoryService.getAllCategories();
-        return ResponseEntity.ok(categoryList);
+        List<CategoryResponseDTO> categories = categoryService.getAllCategories();
+        return ResponseEntity.ok(categories);
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<CategoryResponseDTO> getCategory(@PathVariable Long id) {
         CategoryResponseDTO category = categoryService.getCategoryById(id);
         return ResponseEntity.ok(category);

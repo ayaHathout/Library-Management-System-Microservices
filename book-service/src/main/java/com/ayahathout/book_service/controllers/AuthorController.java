@@ -31,9 +31,9 @@ public class AuthorController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<AuthorResponseDTO> deleteAuthor(@PathVariable Long id) {
-        AuthorResponseDTO author = authorService.deleteAuthor(id);
-        return ResponseEntity.ok(author);
+    public ResponseEntity<Void> deleteAuthor(@PathVariable Long id) {
+        authorService.deleteAuthor(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping

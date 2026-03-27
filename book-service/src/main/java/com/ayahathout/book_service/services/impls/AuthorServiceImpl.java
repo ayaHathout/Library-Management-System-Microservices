@@ -69,13 +69,10 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
-    public AuthorResponseDTO deleteAuthor(Long id) {
-        return authorRepository.findById(id)
-                .map(author -> {
-                    AuthorResponseDTO dto = authorMapper.toResponseDTO(author);
-                    authorRepository.delete(author);
-                    return dto;
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("Author not found with id " + id));
+    public void deleteAuthor(Long id) {
+        if (!authorRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Author not found with id " + id);
+        }
+        authorRepository.deleteById(id);
     }
 }

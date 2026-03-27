@@ -51,7 +51,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         if (categoryCreateDTO.getParentId() != null) {
             Category parent = categoryRepository.findById(categoryCreateDTO.getParentId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Parent category not found with id: " + categoryCreateDTO.getParentId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Parent category not found with id " + categoryCreateDTO.getParentId()));
             category.setParent(parent);
         }
 
@@ -77,28 +77,25 @@ public class CategoryServiceImpl implements CategoryService {
                     }
                     if (categoryUpdateDTO.parentId() != null) {
                         Category parent = categoryRepository.findById(categoryUpdateDTO.parentId())
-                                .orElseThrow(() -> new ResourceNotFoundException("Parent category not found with id: " + categoryUpdateDTO.parentId()));
+                                .orElseThrow(() -> new ResourceNotFoundException("Parent category not found with id " + categoryUpdateDTO.parentId()));
                         category.setParent(parent);
                     }
 
                     return categoryRepository.save(category);
                 })
                 .map(categoryMapper::toResponseDTO)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id " + id));
     }
 
     @Override
-    public CategoryResponseDTO deleteCategory(Long id) {
-        return categoryRepository.findById(id)
-                .map(category -> {
-                    if (!category.getSubCategories().isEmpty()) {
-                        throw new BadRequestException("Cannot delete category with ID " + id + " because it has " + category.getSubCategories().size() + " associated sub categories.");
-                    }
+    public void deleteCategory(Long id) {
+        Category categoryToDelete = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id " + id));
 
-                    CategoryResponseDTO deletedCategory = categoryMapper.toResponseDTO(category);
-                    categoryRepository.delete(category);
-                    return deletedCategory;
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
+        if (!categoryToDelete.getSubCategories().isEmpty()) {
+            throw new BadRequestException("Cannot delete category with id " + id + " because it has " + categoryToDelete.getSubCategories().size() + " associated sub categories.");
+        }
+
+        categoryRepository.delete(categoryToDelete);
     }
 }

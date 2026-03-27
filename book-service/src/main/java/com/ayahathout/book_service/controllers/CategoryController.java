@@ -38,8 +38,8 @@ public class CategoryController {
 
     @GetMapping
     public ResponseEntity<List<CategoryResponseDTO>> getAllCategorys() {
-        List<CategoryResponseDTO> categoryList = categoryService.getAllCategories();
-        return ResponseEntity.ok(categoryList);
+        List<CategoryResponseDTO> categories = categoryService.getAllCategories();
+        return ResponseEntity.ok(categories);
     }
 
     @GetMapping("{id}")

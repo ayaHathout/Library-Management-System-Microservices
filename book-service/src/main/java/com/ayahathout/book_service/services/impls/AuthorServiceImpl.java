@@ -3,6 +3,7 @@ package com.ayahathout.book_service.services.impls;
 import com.ayahathout.book_service.dtos.AuthorCreateDTO;
 import com.ayahathout.book_service.dtos.AuthorUpdateDTO;
 import com.ayahathout.book_service.dtos.AuthorResponseDTO;
+import com.ayahathout.book_service.models.Author;
 import com.ayahathout.common_lib.exceptions.BadRequestException;
 import com.ayahathout.common_lib.exceptions.ResourceNotFoundException;
 import com.ayahathout.book_service.mappers.AuthorMapper;
@@ -70,9 +71,9 @@ public class AuthorServiceImpl implements AuthorService {
 
     @Override
     public void deleteAuthor(Long id) {
-        if (!authorRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Author not found with id " + id);
-        }
-        authorRepository.deleteById(id);
+        Author authorToDelete = authorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Author not found with id " + id));
+
+        authorRepository.delete(authorToDelete);
     }
 }

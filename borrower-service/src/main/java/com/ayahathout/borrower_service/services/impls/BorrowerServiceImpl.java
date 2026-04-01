@@ -1,71 +1,99 @@
-package com.example.libraryManagementSystem.services.impls;
+package com.ayahathout.borrower_service.services.impls;
 
-import com.example.libraryManagementSystem.dtos.BorrowerDTO;
-import com.example.libraryManagementSystem.dtos.BorrowerResponseDTO;
-import com.example.libraryManagementSystem.entities.Borrower;
-import com.example.libraryManagementSystem.mappers.BorrowerMapper;
-import com.example.libraryManagementSystem.repositories.BorrowerRepository;
-import com.example.libraryManagementSystem.services.interfaces.BorrowerService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ayahathout.borrower_service.dtos.BorrowerCreateDTO;
+import com.ayahathout.borrower_service.dtos.BorrowerResponseDTO;
+import com.ayahathout.borrower_service.dtos.BorrowerUpdateDTO;
+import com.ayahathout.borrower_service.mappers.BorrowerMapper;
+import com.ayahathout.borrower_service.models.Borrower;
+import com.ayahathout.borrower_service.repositories.BorrowerRepository;
+import com.ayahathout.borrower_service.services.interfaces.BorrowerService;
+import com.ayahathout.common_lib.exceptions.ResourceNotFoundException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
+@Transactional
 @Service
+@RequiredArgsConstructor
 public class BorrowerServiceImpl implements BorrowerService {
-    @Autowired
-    private BorrowerRepository borrowerRepository;
+    private final BorrowerRepository borrowerRepository;
 
-    @Autowired
-    private BorrowerMapper borrowerMapper;
+    private final BorrowerMapper borrowerMapper;
 
+    @Transactional(readOnly = true)
     @Override
     public List<BorrowerResponseDTO> getAllBorrowers() {
-        return borrowerRepository.findAll().stream().map(borrowerMapper::toResponseDTO).collect(Collectors.toList());
+        log.info("Fetching all borrowers");
+
+        List<BorrowerResponseDTO> borrowers = borrowerRepository.findAll()
+                .stream()
+                .map(borrowerMapper::toResponseDTO)
+                .collect(Collectors.toList());
+
+        log.info("Borrowers fetched successfully {}", borrowers.size());
+        return borrowers;
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public Optional<BorrowerResponseDTO> getBorrowerById(Long id) {
-        return borrowerRepository.findById(id).map(borrowerMapper::toResponseDTO);
-    }
+    public BorrowerResponseDTO getBorrowerById(Long id) {
+        log.info("Fetching borrower with id {}", id);
 
-    @Override
-    public BorrowerResponseDTO createBorrower(BorrowerDTO borrowerDTO) {
-        Borrower borrower = borrowerMapper.toEntity(borrowerDTO);
-        return borrowerMapper.toResponseDTO(borrowerRepository.save(borrower));
-    }
+        BorrowerResponseDTO borrower = borrowerRepository.findById(id)
+                .map(borrowerMapper::toResponseDTO)
+                .orElseThrow(() -> {
+                    log.error("Borrower not found with id {}", id);
+                    return new ResourceNotFoundException("Borrower not found with id " + id);
+                });
 
-    @Override
-    public Optional<BorrowerResponseDTO> updateBorrower(Long id, BorrowerDTO borrowerDTO) {
-        return borrowerRepository.findById(id)
-                .map(borrower -> {
-                    if (borrowerDTO.email() != null) {
-                        borrower.setEmail(borrowerDTO.email());
-                    }
-                    if (borrowerDTO.firstName() != null) {
-                        borrower.setFirstName(borrowerDTO.firstName());
-                    }
-                    if (borrowerDTO.lastName() != null) {
-                        borrower.setLastName(borrowerDTO.lastName());
-                    }
-                    if (borrowerDTO.phone() != null) {
-                        borrower.setPhone(borrowerDTO.phone());
-                    }
-                    if (borrowerDTO.address() != null) {
-                        borrower.setAddress(borrowerDTO.address());
-                    }
-                    return borrowerRepository.save(borrower);
-                }).map(borrowerMapper::toResponseDTO);
-    }
-
-    @Override
-    public Optional<BorrowerResponseDTO> deleteBorrower(Long id) {
-        Optional<BorrowerResponseDTO> borrower = borrowerRepository.findById(id).map(borrowerMapper::toResponseDTO);
-        if (borrower.isPresent()) {
-            borrowerRepository.deleteById(id);
-        }
+        log.info("Borrower fetched successfully with id {}", id);
         return borrower;
+    }
+
+    @Override
+    public BorrowerResponseDTO createBorrower(BorrowerCreateDTO borrowerCreateDTO) {
+        log.info("Creating new borrower");
+
+        Borrower borrower = borrowerMapper.toEntity(borrowerCreateDTO);
+        Borrower savedBorrower = borrowerRepository.save(borrower);
+
+        log.info("Borrower created successfully with id {}", savedBorrower.getId());
+        return borrowerMapper.toResponseDTO(savedBorrower);
+    }
+
+    @Override
+    public BorrowerResponseDTO updateBorrower(Long id, BorrowerUpdateDTO borrowerUpdateDTO) {
+        log.info("Updating borrower with id {}", id);
+
+        Borrower borrowerToUpdate = borrowerRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.error("Borrower not found with id {}", id);
+                    return new ResourceNotFoundException("Borrower not found with id " + id);
+                });
+
+        borrowerMapper.updateEntityFromDTO(borrowerUpdateDTO, borrowerToUpdate);
+        Borrower updatedBorrower = borrowerRepository.save(borrowerToUpdate);
+
+        log.info("Borrower updated successfully with id {}", id);
+        return borrowerMapper.toResponseDTO(updatedBorrower);
+    }
+
+    @Override
+    public void deleteBorrower(Long id) {
+        log.info("Deleting borrower with id {}", id);
+
+        Borrower borrowerToDelete = borrowerRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.error("Borrower not found with id {}", id);
+                    return new ResourceNotFoundException("Borrower not found with id " + id);
+                });
+
+        borrowerRepository.delete(borrowerToDelete);
+        log.info("Borrower deleted successfully with id {}", id);
     }
 }

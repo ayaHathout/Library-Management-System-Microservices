@@ -1,16 +1,15 @@
-package com.example.libraryManagementSystem.services.interfaces;
+package com.ayahathout.borrower_service.services.interfaces;
 
-import com.example.libraryManagementSystem.dtos.BorrowerDTO;
-import com.example.libraryManagementSystem.dtos.BorrowerResponseDTO;
-import com.example.libraryManagementSystem.entities.Borrower;
+import com.ayahathout.borrower_service.dtos.BorrowerCreateDTO;
+import com.ayahathout.borrower_service.dtos.BorrowerResponseDTO;
+import com.ayahathout.borrower_service.dtos.BorrowerUpdateDTO;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface BorrowerService {
     List<BorrowerResponseDTO> getAllBorrowers();
-    Optional<BorrowerResponseDTO> getBorrowerById(Long id);
-    BorrowerResponseDTO createBorrower(BorrowerDTO borrowerDTO);
-    Optional<BorrowerResponseDTO> updateBorrower(Long id, BorrowerDTO borrowerDTO);
-    Optional<BorrowerResponseDTO> deleteBorrower(Long id);
+    BorrowerResponseDTO getBorrowerById(Long id);
+    BorrowerResponseDTO createBorrower(BorrowerCreateDTO borrowerCreateDTO);
+    BorrowerResponseDTO updateBorrower(Long id, BorrowerUpdateDTO borrowerUpdateDTO);
+    void deleteBorrower(Long id);
 }

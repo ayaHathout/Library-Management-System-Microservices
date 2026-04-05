@@ -22,7 +22,7 @@ public class BorrowRecord implements Serializable {
     private Long id;
 
     @Column(name = "borrow_date", nullable = false)
-    private LocalDate borrowDate = LocalDate.now();
+    private LocalDate borrowDate;
 
     @Column(name = "due_date", nullable = false)
     private LocalDate dueDate;
@@ -31,9 +31,10 @@ public class BorrowRecord implements Serializable {
     private LocalDate returnDate;
 
     @Enumerated(EnumType.STRING)
-    private Status status = Status.BORROWED;
+    private Status status;
 
-    private Double fine = 0.0;
+    @Column(nullable = false)
+    private Double fine;
 
     @Column(name = "book_id", nullable = false)
     private Long bookId;

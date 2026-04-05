@@ -4,7 +4,8 @@ import com.ayahathout.borrower_service.enums.Status;
 
 import java.time.LocalDate;
 
-public record BorrowRecordDTO(
+public record BorrowRecordResponseDTO(
+        Long id,
         LocalDate borrowDate,
         LocalDate dueDate,
         LocalDate returnDate,
@@ -12,11 +13,4 @@ public record BorrowRecordDTO(
         Double fine,
         Long borrowerId,
         Long bookId
-) {
-    public BorrowRecordDTO {
-        if (borrowDate == null)  borrowDate = LocalDate.now();
-        if (dueDate == null)  dueDate = LocalDate.now().plusWeeks(1);
-        if (status == null)  status = Status.BORROWED;
-        if (fine == null)  fine = 0.0;
-    }
-}
+){}

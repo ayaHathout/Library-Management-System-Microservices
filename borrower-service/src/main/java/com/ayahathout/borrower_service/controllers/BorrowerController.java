@@ -1,60 +1,50 @@
-package com.example.libraryManagementSystem.controllers;
+package com.ayahathout.borrower_service.controllers;
 
-import com.example.libraryManagementSystem.dtos.BorrowerDTO;
-import com.example.libraryManagementSystem.dtos.BorrowerResponseDTO;
-import com.example.libraryManagementSystem.services.interfaces.BorrowerService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import com.ayahathout.borrower_service.dtos.BorrowerCreateDTO;
+import com.ayahathout.borrower_service.dtos.BorrowerResponseDTO;
+import com.ayahathout.borrower_service.dtos.BorrowerUpdateDTO;
+import com.ayahathout.borrower_service.services.interfaces.BorrowerService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/borrowers")
+@RequiredArgsConstructor
 public class BorrowerController {
-    @Autowired
-    private BorrowerService borrowerService;
+    private final BorrowerService borrowerService;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @PostMapping
-    public BorrowerResponseDTO createBorrower(@RequestBody BorrowerDTO borrowerDTO) {
-        return borrowerService.createBorrower(borrowerDTO);
+    public ResponseEntity<BorrowerResponseDTO> createBorrower(@Valid @RequestBody BorrowerCreateDTO borrowerCreateDTO) {
+        BorrowerResponseDTO retBorrower = borrowerService.createBorrower(borrowerCreateDTO);
+        return ResponseEntity.created(URI.create("/borrowers/" + retBorrower.id())).body(retBorrower);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @PatchMapping("/{id}")
-    public ResponseEntity<?> updateBorrower(@PathVariable Long id, @RequestBody BorrowerDTO borrowerDTO) {
-        Optional<BorrowerResponseDTO> borrower = borrowerService.updateBorrower(id, borrowerDTO);
-        if (borrower.isPresent()) {
-            return ResponseEntity.ok(borrower.get());
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Borrower Not Found With id " + id);
+    public ResponseEntity<BorrowerResponseDTO> updateBorrower(@PathVariable Long id, @Valid @RequestBody BorrowerUpdateDTO borrowerUpdateDTO) {
+        BorrowerResponseDTO borrower = borrowerService.updateBorrower(id, borrowerUpdateDTO);
+        return ResponseEntity.ok(borrower);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteBorrower(@PathVariable Long id) {
-        Optional<BorrowerResponseDTO> borrower = borrowerService.deleteBorrower(id);
-        if (borrower.isPresent()) {
-            return ResponseEntity.ok(borrower.get());
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Borrower Not Found With id " + id);
+    public ResponseEntity<Void> deleteBorrower(@PathVariable Long id) {
+        borrowerService.deleteBorrower(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping
-    public List<BorrowerResponseDTO> getAllBorrowers() {
-        return borrowerService.getAllBorrowers();
+    public ResponseEntity<List<BorrowerResponseDTO>> getAllBorrowers() {
+        List<BorrowerResponseDTO> borrowers = borrowerService.getAllBorrowers();
+        return ResponseEntity.ok(borrowers);
     }
 
-    @GetMapping("{id}")
-    public ResponseEntity<?> getBorrower(@PathVariable Long id) {
-        Optional<BorrowerResponseDTO> borrower = borrowerService.getBorrowerById(id);
-        if (borrower.isPresent()) {
-            return ResponseEntity.ok(borrower.get());
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Borrower Not Found With id " + id);
+    @GetMapping("/{id}")
+    public ResponseEntity<BorrowerResponseDTO> getBorrower(@PathVariable Long id) {
+        BorrowerResponseDTO borrower = borrowerService.getBorrowerById(id);
+        return ResponseEntity.ok(borrower);
     }
 }

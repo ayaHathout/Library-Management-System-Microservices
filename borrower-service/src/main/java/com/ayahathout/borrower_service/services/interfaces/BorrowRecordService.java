@@ -1,20 +1,21 @@
-package com.example.libraryManagementSystem.services.interfaces;
+package com.ayahathout.borrower_service.services.interfaces;
 
-import com.example.libraryManagementSystem.dtos.BorrowRecordDTO;
+import com.ayahathout.borrower_service.dtos.BorrowRecordCreateDTO;
+import com.ayahathout.borrower_service.dtos.BorrowRecordResponseDTO;
+import com.ayahathout.borrower_service.dtos.BorrowRecordUpdateDTO;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface BorrowRecordService {
-    List<BorrowRecordDTO> getAllBorrowRecords();
-    Optional<BorrowRecordDTO> getBorrowRecordById(Long id);
-    BorrowRecordDTO createBorrowRecord(BorrowRecordDTO borrowRecordDTO);
-    Optional<BorrowRecordDTO> updateBorrowRecord(Long id, BorrowRecordDTO borrowRecordDTO);
-    Optional<BorrowRecordDTO> deleteBorrowRecord(Long id);
+    List<BorrowRecordResponseDTO> getAllBorrowRecords();
+    BorrowRecordResponseDTO getBorrowRecordById(Long id);
+    BorrowRecordResponseDTO createBorrowRecord(BorrowRecordCreateDTO borrowRecordCreateDTO);
+    BorrowRecordResponseDTO updateBorrowRecord(Long id, BorrowRecordUpdateDTO borrowRecordUpdateDTO);
+    void deleteBorrowRecord(Long id);
 
     // To handle the book return case
-    BorrowRecordDTO returnBook(Long borrowRecordId);
+    BorrowRecordResponseDTO returnBook(Long borrowRecordId);
 
     // To handle the book borrow case
-    BorrowRecordDTO borrowBook(Long borrowId, Long bookId);
+    BorrowRecordResponseDTO borrowBook(Long borrowId, Long bookId);
 }

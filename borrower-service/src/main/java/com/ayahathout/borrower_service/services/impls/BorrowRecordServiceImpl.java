@@ -168,7 +168,7 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
 
     // To track the status and DueDate
     @Scheduled(cron = "0 0 0 * * ?") // Everyday at 12 AM
-    private void updateOverdueRecords() {
+    public void updateOverdueRecords() {
         List<BorrowRecord> records = borrowRecordRepository.findAll();
         for (BorrowRecord record : records) {
             if (record.getStatus() == Status.BORROWED && LocalDate.now().isAfter(record.getDueDate())) {

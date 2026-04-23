@@ -38,7 +38,7 @@ public class BookServiceProxy {
 
     private BookDTO fallbackUpdateBook(Long id, BookDTO bookDTO, Exception e) {
         log.error("Fallback triggered for updateBook, id: {}, error: {}", id, e.getMessage());
-        
+
         throw new IllegalStateException("Cannot update book right now, service unavailable", e);
     }
 }

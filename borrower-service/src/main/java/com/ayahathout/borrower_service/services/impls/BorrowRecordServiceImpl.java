@@ -1,6 +1,5 @@
 package com.ayahathout.borrower_service.services.impls;
 
-import com.ayahathout.borrower_service.clients.BookServiceClient;
 import com.ayahathout.borrower_service.dtos.BookDTO;
 import com.ayahathout.borrower_service.dtos.BorrowRecordCreateDTO;
 import com.ayahathout.borrower_service.dtos.BorrowRecordResponseDTO;
@@ -11,6 +10,7 @@ import com.ayahathout.borrower_service.models.BorrowRecord;
 import com.ayahathout.borrower_service.models.Borrower;
 import com.ayahathout.borrower_service.repositories.BorrowRecordRepository;
 import com.ayahathout.borrower_service.repositories.BorrowerRepository;
+import com.ayahathout.borrower_service.services.externals.BookServiceProxy;
 import com.ayahathout.borrower_service.services.interfaces.BorrowRecordService;
 import com.ayahathout.common_lib.exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
 
     private final BorrowerRepository borrowerRepository;
 
-    private final BookServiceClient bookServiceClient;
+    private final BookServiceProxy bookServiceProxy;
 
     @Transactional(readOnly = true)
     @Override
@@ -73,7 +73,7 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
         BorrowRecord borrowRecord = borrowRecordMapper.toEntity(borrowRecordCreateDTO);
 
         // Get the book
-        BookDTO book = bookServiceClient.getBook(borrowRecordCreateDTO.getBookId());
+        BookDTO book = bookServiceProxy.getBook(borrowRecordCreateDTO.getBookId());
 
         // Get the borrower
         Borrower borrower = borrowerRepository.findById(borrowRecordCreateDTO.getBorrowerId())
@@ -88,7 +88,7 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
         }
         book.setAvailableCopies(book.getAvailableCopies() - 1);
 
-        bookServiceClient.updateBook(book.getId(), book);
+        bookServiceProxy.updateBook(book.getId(), book);
 
         borrowRecord.setBookId(book.getId());
         borrowRecord.setBorrower(borrower);
@@ -130,13 +130,13 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
                                 .ifPresent(borrowRecord::setBorrower);
                     }
                     if (borrowRecordUpdateDTO.getBookId() != null) {
-                        BookDTO book = bookServiceClient.getBook(borrowRecordUpdateDTO.getBookId());
+                        BookDTO book = bookServiceProxy.getBook(borrowRecordUpdateDTO.getBookId());
                         if (book.getAvailableCopies() == 0) {
                             log.error("No available copies for book with id {}", borrowRecordUpdateDTO.getBookId());
                             throw new ResourceNotFoundException("No available copies for book " + book.getTitle());
                         }
                         book.setAvailableCopies(book.getAvailableCopies() - 1);
-                        bookServiceClient.updateBook(book.getId(), book);
+                        bookServiceProxy.updateBook(book.getId(), book);
                         borrowRecord.setBookId(book.getId());
                     }
 
@@ -168,7 +168,7 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
 
     // To track the status and DueDate
     @Scheduled(cron = "0 0 0 * * ?") // Everyday at 12 AM
-    private void updateOverdueRecords() {
+    public void updateOverdueRecords() {
         List<BorrowRecord> records = borrowRecordRepository.findAll();
         for (BorrowRecord record : records) {
             if (record.getStatus() == Status.BORROWED && LocalDate.now().isAfter(record.getDueDate())) {
@@ -195,10 +195,10 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
         record.setReturnDate(LocalDate.now());
         record.setStatus(Status.RETURNED);
 
-        BookDTO book = bookServiceClient.getBook(record.getBookId());
+        BookDTO book = bookServiceProxy.getBook(record.getBookId());
 
         book.setAvailableCopies(book.getAvailableCopies() + 1);
-        bookServiceClient.updateBook(book.getId(), book);
+        bookServiceProxy.updateBook(book.getId(), book);
 
         if (record.getReturnDate().isAfter(record.getDueDate())) {
             Long overdueDays = ChronoUnit.DAYS.between(record.getDueDate(), record.getReturnDate());
@@ -215,7 +215,7 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
     public BorrowRecordResponseDTO borrowBook(Long borrowId, Long bookId) {
         log.info("Borrower with id {} is borrowing book with id {}", borrowId, bookId);
 
-        BookDTO book = bookServiceClient.getBook(bookId);
+        BookDTO book = bookServiceProxy.getBook(bookId);
 
         // Get the borrower
         Borrower borrower = borrowerRepository.findById(borrowId)
@@ -229,7 +229,7 @@ public class BorrowRecordServiceImpl implements BorrowRecordService {
             throw new ResourceNotFoundException("No available copies for book " + book.getTitle());
         }
         book.setAvailableCopies(book.getAvailableCopies() - 1);
-        bookServiceClient.updateBook(bookId, book);
+        bookServiceProxy.updateBook(bookId, book);
 
         BorrowRecord borrowRecord = BorrowRecord.builder()
                 .borrower(borrower)

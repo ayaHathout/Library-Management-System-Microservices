@@ -14,16 +14,16 @@ import org.springframework.stereotype.Service;
 public class BookServiceProxy {
     private final BookServiceClient bookServiceClient;
 
-    @Retry(name = "bookService", fallbackMethod = "fallbackGetBook")
     @CircuitBreaker(name = "bookService", fallbackMethod = "fallbackGetBook")
+    @Retry(name = "bookService", fallbackMethod = "fallbackGetBook")
     public BookDTO getBook(Long id) {
         log.info("BookServiceProxy.getBook(id)");
 
         return bookServiceClient.getBook(id);
     }
 
-    @Retry(name = "bookService", fallbackMethod = "fallbackUpdateBook")
     @CircuitBreaker(name = "bookService", fallbackMethod = "fallbackUpdateBook")
+    @Retry(name = "bookService", fallbackMethod = "fallbackUpdateBook")
     public BookDTO updateBook(Long id, BookDTO bookDTO) {
         log.info("BookServiceProxy.updateBook(id,bookDTO)");
 
@@ -31,14 +31,14 @@ public class BookServiceProxy {
     }
 
     private BookDTO fallbackGetBook(Long id, Exception e) {
-        log.info("BookServiceProxy.getBook(id,e)");
+        log.error("Fallback triggered for getBook, id: {}, error: {}", id, e.getMessage());
 
         return new BookDTO(id, "Unavailable Book", 0L);
     }
 
     private BookDTO fallbackUpdateBook(Long id, BookDTO bookDTO, Exception e) {
-        log.info("BookServiceProxy.updateBook(id,bookDTO,e)");
+        log.error("Fallback triggered for updateBook, id: {}, error: {}", id, e.getMessage());
 
-        return bookDTO;
+        throw new RuntimeException("Book service unavailable for update", e);
     }
 }
